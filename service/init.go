@@ -45,7 +45,7 @@ import (
 	"github.com/omec-project/smf/util"
 
 	// db changes
-	"github.com/badhrinathpa/MongoDBLibrary"
+	// "github.com/badhrinathpa/MongoDBLibrary"
 	mongoDBLibLogger "github.com/badhrinathpa/MongoDBLibrary/logger"
 )
 
@@ -369,24 +369,7 @@ func (smf *SMF) Start() {
 		initLog.Fatalln("HTTP server setup failed:", err)
 	}
 
-	// db changes
-	initLog.Traceln("db changes.")
-	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "supi")
-	if err != nil {
-		initLog.Traceln("Create index failed on Supi field.")
-	}
-	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "Identifier")
-	if err != nil {
-		initLog.Traceln("Create index failed on Identifier field.")
-	}
-	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "PDUSessionID")
-	if err != nil {
-		initLog.Traceln("Create index failed on PDUSessionID field.")
-	}
-
+	context.SetupSmfCollection()
 }
 
 func (smf *SMF) Terminate() {
