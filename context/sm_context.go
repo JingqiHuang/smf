@@ -37,6 +37,11 @@ import (
 	"github.com/omec-project/smf/logger"
 )
 
+// dn changes
+const (
+	SmContextDataColl = "smf.data.smfState"
+)
+
 const (
 	PDU_SESS_REL_CMD string = "PDUSessionReleaseCommand"
 )
