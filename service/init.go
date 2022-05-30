@@ -43,6 +43,10 @@ import (
 	"github.com/omec-project/smf/pfcp/udp"
 	"github.com/omec-project/smf/pfcp/upf"
 	"github.com/omec-project/smf/util"
+
+	// db changes
+	"github.com/badhrinathpa/MongoDBLibrary"
+	mongoDBLibLogger "github.com/badhrinathpa/MongoDBLibrary/logger"
 )
 
 type SMF struct{}
@@ -237,6 +241,9 @@ func (smf *SMF) setLogLevel() {
 		pfcpLogger.SetReportCaller(factory.SmfConfig.Logger.PFCP.ReportCaller)
 	}
 
+	mongoDBLibLogger.MongoDBLog.Warnln("MongoDBLibrary Log level not set. Default set to [info] level")
+	mongoDBLibLogger.SetLogLevel(logrus.InfoLevel)
+	
 	//Initialise Statistics
 	go metrics.InitMetrics()
 
@@ -361,6 +368,25 @@ func (smf *SMF) Start() {
 	if err != nil {
 		initLog.Fatalln("HTTP server setup failed:", err)
 	}
+
+	// db changes
+	initLog.Traceln("db changes.")
+	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "supi")
+	if err != nil {
+		initLog.Traceln("Create index failed on Supi field.")
+	}
+	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "Identifier")
+	if err != nil {
+		initLog.Traceln("Create index failed on Identifier field.")
+	}
+	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	_, err = MongoDBLibrary.CreateIndex(context.SmContextDataColl, "PDUSessionID")
+	if err != nil {
+		initLog.Traceln("Create index failed on PDUSessionID field.")
+	}
+
 }
 
 func (smf *SMF) Terminate() {
