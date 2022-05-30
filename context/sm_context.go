@@ -90,84 +90,84 @@ func GetSMContextCount() uint64 {
 type SMContext struct {
 	Ref string
 
-	UnauthenticatedSupi bool
+	UnauthenticatedSupi bool `json:"unauthenticatedSupi,omitempty" yaml:"unauthenticatedSupi" bson:"unauthenticatedSupi,omitempty"`
 	// SUPI or PEI
-	Supi           string
-	Pei            string
-	Identifier     string
-	Gpsi           string
-	PDUSessionID   int32
-	Dnn            string
-	Snssai         *models.Snssai
-	HplmnSnssai    *models.Snssai
-	ServingNetwork *models.PlmnId
-	ServingNfId    string
+	Supi           string `json:"supi,omitempty" yaml:"supi" bson:"supi,omitempty"`
+	Pei            string `json:"pei,omitempty" yaml:"pei" bson:"pei,omitempty"`
+	Identifier     string `json:"identifier,omitempty" yaml:"identifier" bson:"identifier,omitempty"`
+	Gpsi           string `json:"gpsi,omitempty" yaml:"gpsi" bson:"gpsi,omitempty"`
+	PDUSessionID   int32 `json:"pduSessionID,omitempty" yaml:"pduSessionID" bson:"pduSessionID,omitempty"`
+	Dnn            string `json:"dnn,omitempty" yaml:"dnn" bson:"dnn,omitempty"`
+	Snssai         *models.Snssai `json:"snssai,omitempty" yaml:"snssai" bson:"snssai,omitempty"`
+	HplmnSnssai    *models.Snssai `json:"hplmnSnssai,omitempty" yaml:"hplmnSnssai" bson:"hplmnSnssai,omitempty"`
+	ServingNetwork *models.PlmnId `json:"servingNetwork,omitempty" yaml:"servingNetwork" bson:"servingNetwork,omitempty"`
+	ServingNfId    string `json:"servingNfId,omitempty" yaml:"servingNfId" bson:"servingNfId,omitempty"`
 
-	UpCnxState models.UpCnxState
+	UpCnxState models.UpCnxState `json:"upCnxState,omitempty" yaml:"upCnxState" bson:"upCnxState,omitempty"`
 
-	AnType          models.AccessType
-	RatType         models.RatType
-	PresenceInLadn  models.PresenceState
-	UeLocation      *models.UserLocation
-	UeTimeZone      string
-	AddUeLocation   *models.UserLocation
-	OldPduSessionId int32
-	HoState         models.HoState
+	AnType          models.AccessType `json:"anType,omitempty" yaml:"anType" bson:"anType,omitempty"`
+	RatType         models.RatType `json:"ratType,omitempty" yaml:"ratType" bson:"ratType,omitempty"`
+	PresenceInLadn  models.PresenceState `json:"presenceInLadn,omitempty" yaml:"presenceInLadn" bson:"presenceInLadn,omitempty"`
+	UeLocation      *models.UserLocation `json:"ueLocation,omitempty" yaml:"ueLocation" bson:"ueLocation,omitempty"`
+	UeTimeZone      string `json:"ueTimeZone,omitempty" yaml:"ueTimeZone" bson:"ueTimeZone,omitempty"`
+	AddUeLocation   *models.UserLocation `json:"addUeLocation,omitempty" yaml:"addUeLocation" bson:"addUeLocation,omitempty"`
+	OldPduSessionId int32 `json:"oldPduSessionId,omitempty" yaml:"oldPduSessionId" bson:"oldPduSessionId,omitempty"`
+	HoState         models.HoState `json:"hoState,omitempty" yaml:"hoState" bson:"hoState,omitempty"`
 
-	PDUAddress             net.IP
-	SelectedPDUSessionType uint8
+	PDUAddress             net.IP `json:"pduAddress,omitempty" yaml:"pduAddress" bson:"pduAddress,omitempty"`
+	SelectedPDUSessionType uint8 `json:"selectedPDUSessionType,omitempty" yaml:"selectedPDUSessionType" bson:"selectedPDUSessionType,omitempty"`
 
-	DnnConfiguration models.DnnConfiguration
+	DnnConfiguration models.DnnConfiguration `json:"dnnConfiguration,omitempty" yaml:"dnnConfiguration" bson:"dnnConfiguration,omitempty"`
 
 	// Client
-	SMPolicyClient      *Npcf_SMPolicyControl.APIClient
-	CommunicationClient *Namf_Communication.APIClient
+	SMPolicyClient      *Npcf_SMPolicyControl.APIClient `json:"smPolicyClient,omitempty" yaml:"smPolicyClient" bson:"smPolicyClient,omitempty"`
+	CommunicationClient *Namf_Communication.APIClient `json:"communicationClient,omitempty" yaml:"communicationClient" bson:"communicationClient,omitempty"`
 
-	AMFProfile         models.NfProfile
-	SelectedPCFProfile models.NfProfile
-	SmStatusNotifyUri  string
+	AMFProfile         models.NfProfile `json:"amfProfile,omitempty" yaml:"amfProfile" bson:"amfProfile,omitempty"`
+	SelectedPCFProfile models.NfProfile `json:"selectedPCFProfile,omitempty" yaml:"selectedPCFProfile" bson:"selectedPCFProfile,omitempty"`
+	SmStatusNotifyUri  string `json:"smStatusNotifyUri,omitempty" yaml:"smStatusNotifyUri" bson:"smStatusNotifyUri,omitempty"`
 
-	SMContextState SMContextState
+	SMContextState SMContextState `json:"smContextState,omitempty" yaml:"smContextState" bson:"smContextState,omitempty"`
 
-	Tunnel    *UPTunnel
-	BPManager *BPManager
+	Tunnel    *UPTunnel `json:"tunnel,omitempty" yaml:"tunnel" bson:"tunnel,omitempty"`
+	BPManager *BPManager `json:"bpManager,omitempty" yaml:"bpManager" bson:"bpManager,omitempty"`
 	// NodeID(string form) to PFCP Session Context
-	PFCPContext                         map[string]*PFCPSessionContext
-	SBIPFCPCommunicationChan            chan PFCPSessionResponseStatus
-	PendingUPF                          PendingUPF
-	PDUSessionRelease_DUE_TO_DUP_PDU_ID bool
-	LocalPurged                         bool
+	PFCPContext                         map[string]*PFCPSessionContext `json:"pfcpContext,omitempty" yaml:"pfcpContext" bson:"pfcpContext,omitempty"`
+	SBIPFCPCommunicationChan            chan PFCPSessionResponseStatus `json:"sbiPFCPCommunicationChan,omitempty" yaml:"sbiPFCPCommunicationChan" bson:"sbiPFCPCommunicationChan,omitempty"`
+	PendingUPF                          PendingUPF `json:"pendingUPF,omitempty" yaml:"pendingUPF" bson:"pendingUPF,omitempty"`
+	PDUSessionRelease_DUE_TO_DUP_PDU_ID bool `json:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty" yaml:"pduSessionRelease_DUE_TO_DUP_PDU_ID" bson:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty"`
+	LocalPurged                         bool `json:"localPurged,omitempty" yaml:"localPurged" bson:"localPurged,omitempty"`
 
-	DNNInfo *SnssaiSmfDnnInfo
+	DNNInfo *SnssaiSmfDnnInfo `json:"dnnInfo,omitempty" yaml:"dnnInfo" bson:"dnnInfo,omitempty"`
 
 	// SM Policy related
 	// Updates in policy from PCF
-	SmPolicyUpdates []*qos.PolicyUpdate
+	SmPolicyUpdates []*qos.PolicyUpdate `json:"smPolicyUpdates,omitempty" yaml:"smPolicyUpdates" bson:"smPolicyUpdates,omitempty"`
 	//Holds Session/PCC Rules and Qos/Cond/Charging Data
 	SmPolicyData qos.SmCtxtPolicyData
 
 	// NAS
-	Pti                     uint8
-	EstAcceptCause5gSMValue uint8
+	Pti                     uint8 `json:"pti,omitempty" yaml:"pti" bson:"pti,omitempty"`
+	EstAcceptCause5gSMValue uint8 `json:"estAcceptCause5gSMValue,omitempty" yaml:"estAcceptCause5gSMValue" bson:"estAcceptCause5gSMValue,omitempty"`
 
 	// PCO Related
-	ProtocolConfigurationOptions *ProtocolConfigurationOptions
+	ProtocolConfigurationOptions *ProtocolConfigurationOptions `json:"protocolConfigurationOptions,omitempty" yaml:"protocolConfigurationOptions" bson:"protocolConfigurationOptions,omitempty"`
 
 	// lock
-	SMLock sync.Mutex
+	SMLock sync.Mutex `json:"smLock,omitempty" yaml:"smLock" bson:"smLock,omitempty"`
 
-	SubGsmLog      *logrus.Entry
-	SubPfcpLog     *logrus.Entry
-	SubPduSessLog  *logrus.Entry
-	SubCtxLog      *logrus.Entry
-	SubConsumerLog *logrus.Entry
-	SubFsmLog      *logrus.Entry
-	SubQosLog      *logrus.Entry
+	SubGsmLog      *logrus.Entry `json:"-" yaml:"subGsmLog" bson:"-"`
+	SubPfcpLog     *logrus.Entry `json:"-" yaml:"subPfcpLog" bson:"-"`
+	SubPduSessLog  *logrus.Entry `json:"-" yaml:"subPduSessLog" bson:"-"`
+	SubCtxLog      *logrus.Entry `json:"-" yaml:"subCtxLog" bson:"-"`
+	SubConsumerLog *logrus.Entry `json:"-" yaml:"subConsumerLog" bson:"-"`
+	SubFsmLog      *logrus.Entry `json:"-" yaml:"subFsmLog" bson:"-"`
+	SubQosLog      *logrus.Entry `json:"-" yaml:"subQosLog" bson:"-"`
 
 	//TxnBus per subscriber
-	TxnBus       transaction.TxnBus
-	SMTxnBusLock sync.Mutex
-	ActiveTxn    *transaction.Transaction
+	TxnBus       transaction.TxnBus `json:"txnBus,omitempty" yaml:"txnBus" bson:"txnBus,omitempty"`
+	SMTxnBusLock sync.Mutex `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
+	ActiveTxn    *transaction.Transaction `json:"activeTxn,omitempty" yaml:"activeTxn" bson:"activeTxn,omitempty"`
 }
 
 func canonicalName(identifier string, pduSessID int32) (canonical string) {

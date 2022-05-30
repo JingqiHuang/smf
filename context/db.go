@@ -10,10 +10,10 @@
 package context
 
 import (
-	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"github.com/badhrinathpa/MongoDBLibrary"
-	// "go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/free5gc/amf/logger"
 	// "github.com/free5gc/openapi/models"
@@ -31,18 +31,18 @@ func SetupSmfCollection() {
 		logger.ContextLog.Errorf("Create index failed on Supi field.")
 	}
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "Identifier")
+	_, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "identifier")
 	if err != nil {
 		logger.ContextLog.Errorf("Create index failed on Identifier field.")
 	}
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "PDUSessionID")
+	_, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "pduSessionID")
 	if err != nil {
 		logger.ContextLog.Errorf("Create index failed on PDUSessionID field.")
 	}
 }
 
-/*
+
 func ToBsonM(data *SMContext) (ret bson.M) {
 	tmp, err := json.Marshal(data)
 	if err != nil {
@@ -61,6 +61,6 @@ func StoreContextInDB(smContext *SMContext) {
 	filter := bson.M{"supi": smContext.Supi}
 	logger.ContextLog.Infof("filter : ", filter)
 
-	MongoDBLibrary.RestfulAPIPost(AmfUeDataColl, filter, smContextBsonA)
+	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
 }
-*/
+

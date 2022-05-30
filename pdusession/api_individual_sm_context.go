@@ -134,4 +134,5 @@ func HTTPUpdateSmContext(c *gin.Context) {
 	} else {
 		c.JSON(HTTPResponse.Status, HTTPResponse.Body)
 	}
+
 }

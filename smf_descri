@@ -1,0 +1,120 @@
+Name:         smf-f7d9788b5-94cmt
+Namespace:    omec
+Priority:     0
+Node:         jingqi/172.16.45.201
+Start Time:   Mon, 30 May 2022 19:12:49 +0000
+Labels:       app=smf
+              pod-template-hash=f7d9788b5
+              release=sd-core
+Annotations:  cni.projectcalico.org/containerID: 65cee8d7833d97c0f0ddfa06861c5a01af8ab1765febb18dccff02bfb544a896
+              cni.projectcalico.org/podIP: 192.168.84.81/32
+              cni.projectcalico.org/podIPs: 192.168.84.81/32
+              field.cattle.io/workloadMetrics: [{"path":"/metrics","port":9089,"schema":"HTTP"}]
+              helm.sh/hook: pre-install
+              helm.sh/hook-weight: 5
+              k8s.v1.cni.cncf.io/network-status:
+                [{
+                    "name": "",
+                    "ips": [
+                        "192.168.84.81"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              k8s.v1.cni.cncf.io/networks-status:
+                [{
+                    "name": "",
+                    "ips": [
+                        "192.168.84.81"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              kubernetes.io/psp: global-unrestricted-psp
+Status:       Running
+IP:           192.168.84.81
+IPs:
+  IP:           192.168.84.81
+Controlled By:  ReplicaSet/smf-f7d9788b5
+Init Containers:
+  wait-smf-module:
+    Container ID:  containerd://28bbf2e535bd63aa60b79df706324772a41143b4287d03632d978c27474af66e
+    Image:         registry.opennetworking.org/docker.io/omecproject/pod-init:1.0.0
+    Image ID:      registry.opennetworking.org/docker.io/omecproject/pod-init@sha256:16c14327ce4a191c4f1ced5c0c0cd835150c893a824cc21f80748b674d0308dc
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -c
+      until nslookup smf; do echo waiting for smf; sleep 4; done;
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 30 May 2022 19:12:52 +0000
+      Finished:     Mon, 30 May 2022 19:12:52 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-cm6bd (ro)
+Containers:
+  smf:
+    Container ID:  containerd://1d0fb754683f32cf5a7a1a1e6e9ef631b05b824f413ee87d0f4f9f5fa238fbc5
+    Image:         registry.opennetworking.org/docker.io/omecproject/5gc-smf:master-7ef661b
+    Image ID:      registry.opennetworking.org/docker.io/omecproject/5gc-smf@sha256:04244aa8006ef496e20a0d864a56cb0d49d2de23af3361c60f2ce46c5a186f7d
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /free5gc/script/smf-run.sh
+    State:          Running
+      Started:      Mon, 30 May 2022 19:12:53 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      GRPC_GO_LOG_VERBOSITY_LEVEL:  99
+      GRPC_GO_LOG_SEVERITY_LEVEL:   info
+      GRPC_TRACE:                   all
+      GRPC_VERBOSITY:               debug
+      POD_IP:                        (v1:status.podIP)
+      MANAGED_BY_CONFIG_POD:        true
+    Mounts:
+      /free5gc/config from nf-config (rw)
+      /free5gc/script/smf-run.sh from run-script (rw,path="smf-run.sh")
+      /free5gc/uerouting from nf-config (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-cm6bd (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  run-script:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      smf
+    Optional:  false
+  nf-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      smf
+    Optional:  false
+  kube-api-access-cm6bd:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason          Age    From               Message
+  ----    ------          ----   ----               -------
+  Normal  Scheduled       4m46s  default-scheduler  Successfully assigned omec/smf-f7d9788b5-94cmt to jingqi
+  Normal  AddedInterface  4m43s  multus             Add eth0 [192.168.84.81/32]
+  Normal  Pulled          4m43s  kubelet            Container image "registry.opennetworking.org/docker.io/omecproject/pod-init:1.0.0" already present on machine
+  Normal  Created         4m43s  kubelet            Created container wait-smf-module
+  Normal  Started         4m43s  kubelet            Started container wait-smf-module
+  Normal  Pulled          4m42s  kubelet            Container image "registry.opennetworking.org/docker.io/omecproject/5gc-smf:master-7ef661b" already present on machine
+  Normal  Created         4m42s  kubelet            Created container smf
+  Normal  Started         4m42s  kubelet            Started container smf

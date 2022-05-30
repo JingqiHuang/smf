@@ -432,6 +432,8 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 		}
 	}
 
+	smf_context.StoreContextInDB(smContext)
+
 	txn.Rsp = httpResponse
 	return nil
 }
