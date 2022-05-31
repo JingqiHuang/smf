@@ -88,24 +88,24 @@ func GetSMContextCount() uint64 {
 }
 
 type SMContext struct {
-	Ref string
+	Ref string `json:"ref" yaml:"ref" bson:"ref"`
 
 	UnauthenticatedSupi bool `json:"unauthenticatedSupi,omitempty" yaml:"unauthenticatedSupi" bson:"unauthenticatedSupi,omitempty"`
 	// SUPI or PEI
 	Supi           string `json:"supi,omitempty" yaml:"supi" bson:"supi,omitempty"`
 	Pei            string `json:"pei,omitempty" yaml:"pei" bson:"pei,omitempty"`
-	Identifier     string `json:"identifier,omitempty" yaml:"identifier" bson:"identifier,omitempty"`
+	Identifier     string `json:"identifier" yaml:"identifier" bson:"identifier"`
 	Gpsi           string `json:"gpsi,omitempty" yaml:"gpsi" bson:"gpsi,omitempty"`
-	PDUSessionID   int32 `json:"pduSessionID,omitempty" yaml:"pduSessionID" bson:"pduSessionID,omitempty"`
-	Dnn            string `json:"dnn,omitempty" yaml:"dnn" bson:"dnn,omitempty"`
-	Snssai         *models.Snssai `json:"snssai,omitempty" yaml:"snssai" bson:"snssai,omitempty"`
+	PDUSessionID   int32 `json:"pduSessionID" yaml:"pduSessionID" bson:"pduSessionID"`
+	Dnn            string `json:"dnn" yaml:"dnn" bson:"dnn"`
+	Snssai         *models.Snssai `json:"snssai" yaml:"snssai" bson:"snssai"`
 	HplmnSnssai    *models.Snssai `json:"hplmnSnssai,omitempty" yaml:"hplmnSnssai" bson:"hplmnSnssai,omitempty"`
 	ServingNetwork *models.PlmnId `json:"servingNetwork,omitempty" yaml:"servingNetwork" bson:"servingNetwork,omitempty"`
 	ServingNfId    string `json:"servingNfId,omitempty" yaml:"servingNfId" bson:"servingNfId,omitempty"`
 
 	UpCnxState models.UpCnxState `json:"upCnxState,omitempty" yaml:"upCnxState" bson:"upCnxState,omitempty"`
 
-	AnType          models.AccessType `json:"anType,omitempty" yaml:"anType" bson:"anType,omitempty"`
+	AnType          models.AccessType `json:"anType" yaml:"anType" bson:"anType"`
 	RatType         models.RatType `json:"ratType,omitempty" yaml:"ratType" bson:"ratType,omitempty"`
 	PresenceInLadn  models.PresenceState `json:"presenceInLadn,omitempty" yaml:"presenceInLadn" bson:"presenceInLadn,omitempty"`
 	UeLocation      *models.UserLocation `json:"ueLocation,omitempty" yaml:"ueLocation" bson:"ueLocation,omitempty"`
@@ -127,13 +127,17 @@ type SMContext struct {
 	SelectedPCFProfile models.NfProfile `json:"selectedPCFProfile,omitempty" yaml:"selectedPCFProfile" bson:"selectedPCFProfile,omitempty"`
 	SmStatusNotifyUri  string `json:"smStatusNotifyUri,omitempty" yaml:"smStatusNotifyUri" bson:"smStatusNotifyUri,omitempty"`
 
-	SMContextState SMContextState `json:"smContextState,omitempty" yaml:"smContextState" bson:"smContextState,omitempty"`
+	SMContextState SMContextState `json:"smContextState" yaml:"smContextState" bson:"smContextState"`
 
-	Tunnel    *UPTunnel `json:"tunnel,omitempty" yaml:"tunnel" bson:"tunnel,omitempty"`
+	// encountered a cycle via *context.GTPTunnel
+	Tunnel    *UPTunnel `json:"-" yaml:"upTunnel" bson:"-"`
+	
 	BPManager *BPManager `json:"bpManager,omitempty" yaml:"bpManager" bson:"bpManager,omitempty"`
 	// NodeID(string form) to PFCP Session Context
-	PFCPContext                         map[string]*PFCPSessionContext `json:"pfcpContext,omitempty" yaml:"pfcpContext" bson:"pfcpContext,omitempty"`
-	SBIPFCPCommunicationChan            chan PFCPSessionResponseStatus `json:"sbiPFCPCommunicationChan,omitempty" yaml:"sbiPFCPCommunicationChan" bson:"sbiPFCPCommunicationChan,omitempty"`
+	PFCPContext                         map[string]*PFCPSessionContext `json:"pfcpContext" yaml:"pfcpContext" bson:"pfcpContext"`
+	// unsupported structure - madatory!
+	SBIPFCPCommunicationChan            chan PFCPSessionResponseStatus `json:"-" yaml:"sbiPFCPCommunicationChan" bson:"-"`
+	
 	PendingUPF                          PendingUPF `json:"pendingUPF,omitempty" yaml:"pendingUPF" bson:"pendingUPF,omitempty"`
 	PDUSessionRelease_DUE_TO_DUP_PDU_ID bool `json:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty" yaml:"pduSessionRelease_DUE_TO_DUP_PDU_ID" bson:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty"`
 	LocalPurged                         bool `json:"localPurged,omitempty" yaml:"localPurged" bson:"localPurged,omitempty"`
@@ -142,21 +146,21 @@ type SMContext struct {
 
 	// SM Policy related
 	// Updates in policy from PCF
-	SmPolicyUpdates []*qos.PolicyUpdate `json:"smPolicyUpdates,omitempty" yaml:"smPolicyUpdates" bson:"smPolicyUpdates,omitempty"`
+	SmPolicyUpdates []*qos.PolicyUpdate `json:"smPolicyUpdates" yaml:"smPolicyUpdates" bson:"smPolicyUpdates"`
 	//Holds Session/PCC Rules and Qos/Cond/Charging Data
-	SmPolicyData qos.SmCtxtPolicyData
+	SmPolicyData qos.SmCtxtPolicyData `json:"smPolicyData" yaml:"smPolicyData" bson:"smPolicyData"`
 
 	// NAS
 	Pti                     uint8 `json:"pti,omitempty" yaml:"pti" bson:"pti,omitempty"`
 	EstAcceptCause5gSMValue uint8 `json:"estAcceptCause5gSMValue,omitempty" yaml:"estAcceptCause5gSMValue" bson:"estAcceptCause5gSMValue,omitempty"`
 
 	// PCO Related
-	ProtocolConfigurationOptions *ProtocolConfigurationOptions `json:"protocolConfigurationOptions,omitempty" yaml:"protocolConfigurationOptions" bson:"protocolConfigurationOptions,omitempty"`
+	ProtocolConfigurationOptions *ProtocolConfigurationOptions `json:"protocolConfigurationOptions" yaml:"protocolConfigurationOptions" bson:"protocolConfigurationOptions"`
 
 	// lock
 	SMLock sync.Mutex `json:"smLock,omitempty" yaml:"smLock" bson:"smLock,omitempty"`
 
-	SubGsmLog      *logrus.Entry `json:"-" yaml:"subGsmLog" bson:"-"`
+	SubGsmLog      *logrus.Entry `json:"-" yaml:"subGsmLog" bson:"-,"`
 	SubPfcpLog     *logrus.Entry `json:"-" yaml:"subPfcpLog" bson:"-"`
 	SubPduSessLog  *logrus.Entry `json:"-" yaml:"subPduSessLog" bson:"-"`
 	SubCtxLog      *logrus.Entry `json:"-" yaml:"subCtxLog" bson:"-"`
@@ -167,8 +171,32 @@ type SMContext struct {
 	//TxnBus per subscriber
 	TxnBus       transaction.TxnBus `json:"txnBus,omitempty" yaml:"txnBus" bson:"txnBus,omitempty"`
 	SMTxnBusLock sync.Mutex `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
-	ActiveTxn    *transaction.Transaction `json:"activeTxn,omitempty" yaml:"activeTxn" bson:"activeTxn,omitempty"`
+	
+	// encountered a cycle via *context.SMContext
+	ActiveTxn    *transaction.Transaction `json:"-" yaml:"subGsmLog" bson:"-,"`
 }
+
+/*
+func (smContext *SMContext) MarshalJSON() ([]byte, error) {
+	type Alias SMContext
+	// UPTunnel: GTPTunnel -> TEID
+
+	// SBIPFCPCommunicationChan omit, and make a new one when needed
+
+	// ActiveTxn
+
+	return json.Marshal(&struct {
+		UPTunnel
+		SBIPFCPCommunicationChan
+		ActiveTxn
+		*Alias
+	}{
+		UPTunnel: upTunnelVal
+		SBIPFCPCommunicationChan: sbiPFCPCommunicationChanVal
+		ActiveTxn: activeTxnVal
+		Alias:       (*Alias)(smContext),
+	})
+}*/
 
 func canonicalName(identifier string, pduSessID int32) (canonical string) {
 	return fmt.Sprintf("%s-%d", identifier, pduSessID)

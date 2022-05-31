@@ -24,7 +24,7 @@ const (
 )
 
 func SetupSmfCollection() {
-	fmt.Println("db changes.")
+	fmt.Println("db - SetupSmfCollection!!")
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
 	_, err := MongoDBLibrary.CreateIndex(SmContextDataColl, "supi")
 	if err != nil {
@@ -57,10 +57,12 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 }
 
 func StoreContextInDB(smContext *SMContext) {
+	fmt.Println("db - Store SMContext In DB!!")
 	smContextBsonA := ToBsonM(smContext)
 	filter := bson.M{"supi": smContext.Supi}
 	logger.ContextLog.Infof("filter : ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
+	fmt.Println("db - finished Store SMContext In DB!!")
 }
 

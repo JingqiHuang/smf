@@ -326,6 +326,10 @@ func (smf *SMF) Start() {
 			eventexposure.AddService(router)
 		}
 	}
+	// db changes
+	initLog.Infof("SetupSmfCollection")
+	context.SetupSmfCollection()
+
 	udp.Run(pfcp.Dispatch)
 
 	for _, upf := range context.SMF_Self().UserPlaneInformation.UPFs {
@@ -369,7 +373,7 @@ func (smf *SMF) Start() {
 		initLog.Fatalln("HTTP server setup failed:", err)
 	}
 
-	context.SetupSmfCollection()
+
 }
 
 func (smf *SMF) Terminate() {
