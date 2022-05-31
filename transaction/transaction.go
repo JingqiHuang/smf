@@ -29,6 +29,24 @@ type Transaction struct {
 	TxnFsmLog          *logrus.Entry
 }
 
+
+func (t *Transaction) StartTime() time.Time {
+	return t.startTime
+}
+
+func (t *Transaction) EndTime() time.Time {
+	return t.endTime
+}
+
+func (t *Transaction) SetStartTime(ti time.Time ) {
+	t.startTime = ti
+}
+
+func (t *Transaction) SetEndTime(ti time.Time ) {
+	t.endTime = ti
+}
+
+
 func (t *Transaction) initLogTags() {
 	subField := logrus.Fields{"txnid": t.TxnId,
 		"txntype": string(t.MsgType), "ctxtkey": t.CtxtKey}

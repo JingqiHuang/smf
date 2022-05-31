@@ -20,7 +20,9 @@ import (
 )
 
 const (
-	SmContextDataColl = "smf.data.smfState"
+	SmContextDataColl = "smf.data.smContext"
+	GTPTunnelDataColl = "smf.data.gtpTunnel"
+	TransactionDataCol = "smf.data.transaction"
 )
 
 func SetupSmfCollection() {
@@ -40,6 +42,18 @@ func SetupSmfCollection() {
 	if err != nil {
 		logger.ContextLog.Errorf("Create index failed on PDUSessionID field.")
 	}
+
+	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	_, err = MongoDBLibrary.CreateIndex(GTPTunnelDataColl, "teid")
+	if err != nil {
+		logger.ContextLog.Errorf("Create index failed on teid field.")
+	}
+	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	_, err = MongoDBLibrary.CreateIndex(TransactionDataCol, "txnId")
+	if err != nil {
+		logger.ContextLog.Errorf("Create index failed on TxnId field.")
+	}
+	
 }
 
 
