@@ -46,6 +46,7 @@ require (
 	github.com/free5gc/logger_conf v1.0.0 // indirect
 	github.com/free5gc/logger_util v1.0.0 // indirect
 	github.com/free5gc/path_util v1.0.0 // indirect
+	github.com/free5gc/smf v1.3.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect

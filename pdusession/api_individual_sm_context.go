@@ -80,6 +80,7 @@ func HTTPReleaseSmContext(c *gin.Context) {
 
 // RetrieveSmContext - Retrieve SM Context
 func RetrieveSmContext(c *gin.Context) {
+	logger.PduSessLog.Info("db - Recieve RetrieveSmContext Request")
 	c.JSON(http.StatusOK, gin.H{})
 }
 

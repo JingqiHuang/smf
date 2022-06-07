@@ -35,9 +35,6 @@ import (
 	"github.com/omec-project/openapi/models"
 	"github.com/omec-project/pfcp/pfcpType"
 	"github.com/omec-project/smf/logger"
-
-	"time"
-	"encoding/json"
 )
 
 
@@ -48,6 +45,7 @@ const (
 var (
 	smContextPool    sync.Map
 	canonicalRef     sync.Map
+	// should it be stored in DB?
 	seidSMContextMap sync.Map
 )
 
@@ -176,86 +174,7 @@ type SMContext struct {
 	SMTxnBusLock sync.Mutex `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
 	
 	// encountered a cycle via *context.SMContext
-	ActiveTxn    *transaction.Transaction `json:"-" yaml:"subGsmLog" bson:"-,"`
-}
-
-type TransactionInDB struct {
-	startTime, endTime time.Time
-	TxnId              uint32
-	Priority           uint32
-	Req                interface{}
-	Rsp                interface{}
-	Ctxt               interface{}
-	MsgType            svcmsgtypes.SmfMsgType
-	CtxtKey            string
-	Err                error
-	Status             chan bool
-	NextTxnId          uint32
-	TxnFsmLog          *logrus.Entry
-}
-
-
-func (smContext *SMContext) MarshalJSON() ([]byte, error) {
-	type Alias SMContext
-	// UPTunnel: GTPTunnel -> TEID
-
-	// SBIPFCPCommunicationChan omit, and make a new one when needed
-
-	// ActiveTxn: transaction -> TxnId
-
-	activeTxnVal := TransactionInDB{startTime: smContext.ActiveTxn.StartTime(),
-									endTime: smContext.ActiveTxn.EndTime(),
-									TxnId: smContext.ActiveTxn.TxnId,
-									Priority: smContext.ActiveTxn.Priority,
-									Req: smContext.ActiveTxn.Req,
-									Rsp: smContext.ActiveTxn.Rsp,
-									Ctxt: smContext.ActiveTxn.Ctxt,
-									MsgType: smContext.ActiveTxn.MsgType,
-									CtxtKey: smContext.ActiveTxn.CtxtKey,
-									Err: smContext.ActiveTxn.Err,
-									Status: smContext.ActiveTxn.Status,
-									// NextTxnId: smContext.ActiveTxn.NextTxnId,
-									TxnFsmLog: smContext.ActiveTxn.TxnFsmLog}
-
-	return json.Marshal(&struct {
-		// UPTunnel
-		ActiveTxn	TransactionInDB	`json:"transaction"`
-		*Alias
-	}{
-		// UPTunnel: upTunnelVal
-		ActiveTxn: activeTxnVal,
-		Alias:       (*Alias)(smContext),
-	})
-}
-
-func (smContext *SMContext) UnmarshalJSON(data []byte) error {
-	type Alias SMContext
-	aux := &struct {
-		ActiveTxn	TransactionInDB	`json:"transaction"`
-		*Alias
-	}{
-		Alias: (*Alias)(smContext),
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
-		fmt.Println("Err in customized Marshall!!")
-		return err
-	}
-	smContext.ActiveTxn.SetStartTime(aux.ActiveTxn.startTime)
-	smContext.ActiveTxn.SetEndTime(aux.ActiveTxn.endTime)
-	smContext.ActiveTxn.TxnId = aux.ActiveTxn.TxnId
-	smContext.ActiveTxn.Priority = aux.ActiveTxn.Priority
-	smContext.ActiveTxn.Req = &aux.ActiveTxn.Req
-	smContext.ActiveTxn.Rsp = &aux.ActiveTxn.Rsp
-	smContext.ActiveTxn.Ctxt = &aux.ActiveTxn.Ctxt
-	smContext.ActiveTxn.MsgType = aux.ActiveTxn.MsgType
-	smContext.ActiveTxn.CtxtKey = aux.ActiveTxn.CtxtKey
-	smContext.ActiveTxn.Err = aux.ActiveTxn.Err
-	smContext.ActiveTxn.Status = aux.ActiveTxn.Status
-	// need to retrieve next txn in db
-	// smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
-	smContext.ActiveTxn.TxnFsmLog = aux.ActiveTxn.TxnFsmLog
-
-	return nil
+	ActiveTxn    *transaction.Transaction `json:"-" yaml:"activeTxn" bson:"-,"`
 }
 
 
@@ -513,6 +432,8 @@ func (smContext *SMContext) AllocateLocalSEIDForUPPath(path UPPath) {
 			}
 
 			seidSMContextMap.Store(allocatedSEID, smContext)
+			fmt.Println("db - AllocateLocalSEIDForUPPath")
+			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
 }

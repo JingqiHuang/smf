@@ -87,6 +87,7 @@ github.com/free5gc/UeauCommon v1.0.0/go.mod h1:Ly9JlJN4c1uCALizCmEha1Nu78ibQjbpQ
 github.com/free5gc/amf v1.3.0 h1:TJeIC3Md2R6sDw7tjmwYi+4p1qcT6ff8fVM+85QB+0k=
 github.com/free5gc/amf v1.3.0/go.mod h1:rvKiesox0/VcKaXPLEqb1udczlvRMdcd7q22fcPQs80=
 github.com/free5gc/aper v1.0.0/go.mod h1:L1R91VwLpAIh/kx/hOWXwgBQp3ZZflRHHKCYmfeGegU=
+github.com/free5gc/flowdesc v1.0.0/go.mod h1:PGEZd/IMsTEeXB4Yaswh0YazQfM3AOhAL8cKhzAr9Ck=
 github.com/free5gc/fsm v1.0.0/go.mod h1:DGWHYWqsDJkb7ycNk9WiAe5WfbFyFTjGPEY0lfwlDg8=
 github.com/free5gc/http2_util v1.0.0/go.mod h1:GN2BCD8IINjtnAKYGwe+dEeTBRFEv4lQnZblFIIhbdE=
 github.com/free5gc/http_wrapper v1.0.0/go.mod h1:vVArDqfCo7fvmYGi9WRPj4yurSu86GxRh3iQ70aq+OE=
@@ -100,6 +101,10 @@ github.com/free5gc/ngap v1.0.0/go.mod h1:FIAFElkAuJzusN2kXrCNJlSuCcQid8RZd5qZaf4
 github.com/free5gc/openapi v1.0.0/go.mod h1:7OzxoWBj6KQgznMW2ZiUtZdCGY+t89v4wtgKLhluKgU=
 github.com/free5gc/path_util v1.0.0 h1:vJPGTymaWtavz6fJ/7k6WKEYv5BQLAq/O04RP54sab0=
 github.com/free5gc/path_util v1.0.0/go.mod h1:OpmcebEKrMPnH7Jg5lZ8y9ZWJNAjQ4l9FGWXUv58Mo0=
+github.com/free5gc/pfcp v1.0.0/go.mod h1:Ew7nJkt2nOsGh3hgDD7SLWVsQL2kCmbfgvaYwmAYTRg=
+github.com/free5gc/smf v1.3.0 h1:ye1yf9qCDRX26m9Xivn40GvymPFoljZgR0K+tL1sHQw=
+github.com/free5gc/smf v1.3.0/go.mod h1:Z2zj1doCjYcyCGe7S72YQsCFD+JNb9B3Mhgm0AipgxQ=
+github.com/free5gc/tlv v1.0.0/go.mod h1:ba4cBLpig9x0GsEFlZEqUuTUeJez0Uhv36dnnqUkO6U=
 github.com/free5gc/util_3gpp v1.0.0/go.mod h1:6uI6CB6SD/yWpalo17gc5eWUVFMAIKkWDiQpkOX3+c8=
 github.com/free5gc/version v1.0.0/go.mod h1:wOTwzjk7sqeysX1b/Z4x+pWBHFuZOPtQj3h+IJXSpmQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
