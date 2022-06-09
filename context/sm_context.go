@@ -131,7 +131,7 @@ type SMContext struct {
 	SMContextState SMContextState `json:"smContextState" yaml:"smContextState" bson:"smContextState"`
 
 	// encountered a cycle via *context.GTPTunnel
-	Tunnel    *UPTunnel `json:"-" yaml:"upTunnel" bson:"-"`
+	Tunnel    *UPTunnel `json:"-" yaml:"tunnel" bson:"-"`
 	
 	BPManager *BPManager `json:"bpManager,omitempty" yaml:"bpManager" bson:"bpManager,omitempty"`
 	// NodeID(string form) to PFCP Session Context
@@ -225,6 +225,7 @@ func NewSMContext(identifier string, pduSessID int32) (smContext *SMContext) {
 	//initialise log tags
 	smContext.initLogTags()
 
+	// StoreSmContextInDB(smContext)
 	return smContext
 }
 

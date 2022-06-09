@@ -431,9 +431,11 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 			Body:   response,
 		}
 	}
-	smContext.SubCtxLog.Traceln("db - StoreContextInDB(smContext) in sm_context.go!!!")
-	// tmp_smContext := smContext
-	smf_context.StoreContextInDB(smContext)
+	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go!!!")
+	smf_context.StoreSmContextInDB(smContext)
+	// tmp_smContext := smf_context.GetSMContextByRefInDB(smContext.Ref)
+	// fmt.Println("db - tmp_smContext %v", tmp_smContext)
+
 
 	txn.Rsp = httpResponse
 	return nil

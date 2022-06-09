@@ -19,8 +19,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
-// store/get/recover Txn
+// // Transaction
+// type TransactionInDB struct {
+// 	startTime time.Time `json:"startTime,omitempty" yaml:"startTime" bson:"startTime,omitempty"`
+// 	endTime time.Time	`json:"endTime,omitempty" yaml:"endTime" bson:"endTime,omitempty"`
+// 	TxnId              uint32	`json:"txnId,omitempty" yaml:"txnId" bson:"txnId,omitempty"`
+// 	Priority           uint32	`json:"priority,omitempty" yaml:"priority" bson:"priority,omitempty"`
+// 	Req                interface{}	`json:"req,omitempty" yaml:"req" bson:"req,omitempty"`
+// 	Rsp                interface{}	`json:"rsp,omitempty" yaml:"rsp" bson:"rsp,omitempty"`
+// 	Ctxt               interface{}	`json:"ctxt,omitempty" yaml:"ctxt" bson:"ctxt,omitempty"`
+// 	// MsgType            svcmsgtypes.SmfMsgType
+// 	MsgType				string	`json:"msgType,omitempty" yaml:"msgType" bson:"msgType,omitempty"`
+// 	CtxtKey            string	`json:"ctxtKey,omitempty" yaml:"ctxtKey" bson:"ctxtKey,omitempty"`
+// 	Err                error	`json:"err,omitempty" yaml:"err" bson:"err,omitempty"`
+// 	// Status             chan bool
+// 	NextTxnId          uint32	`json:"nextTxnId,omitempty" yaml:"nextTxnId" bson:"nextTxnId,omitempty"`
+// 	// TxnFsmLog          *logrus.Entry
+// }
+// // store/get/recover Txn
 
 func ToBsonMTxnInDB(data *TransactionInDB) (ret bson.M){
 	// Marshal data into json format
@@ -48,13 +64,13 @@ func StoreTxnInDB(txnInDB *TransactionInDB) {
 	fmt.Println("db - finished StoreTxnInDB In DB!!")
 }
 
-func GetTxnInDBFromDB(txnID uint32) *TransactionInDB {
+func GetTxnInDBFromDB(txnID uint32) (txnInDB *TransactionInDB) {
 	filter := bson.M{}
 	filter["txnID"] = txnID
 
 	result := MongoDBLibrary.RestfulAPIGetOne(TransactionDataCol, filter)
 
-	txnInDB := &TransactionInDB{}
+	txnInDB = &TransactionInDB{}
 	fmt.Println("GetTxnInDBFromDB, smf state json : ", result)
 
 	err := json.Unmarshal(mapToByte(result), txnInDB)
@@ -66,9 +82,9 @@ func GetTxnInDBFromDB(txnID uint32) *TransactionInDB {
 	return txnInDB
 }
 
-func RecoverActiveTxn(txnID uint32) *transaction.Transaction {
+func RecoverActiveTxn(txnID uint32) (txn *transaction.Transaction) {
 
-	txn := &transaction.Transaction{}
+	txn = &transaction.Transaction{}
 	txnInDB := GetTxnInDBFromDB(txnID)
 
 	if txn.NextTxn !=nil {

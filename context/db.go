@@ -81,53 +81,29 @@ type DataPathInDB struct {
 	Destination       Destination
 	HasBranchingPoint bool
 	// Data Path Double Link List
-	FirstDPNode DataPathNodeInDB
+	FirstDPNode *DataPathNodeInDB
 	// FirstDPNode *DataPathNodeInDB
 }
 
-// type DataPathNodeInDB  struct {
-// 	// UPF UPF
-// 	UPF *UPF
-// 	// DataPathToAN *DataPathDownLink
-// 	// DataPathToDN map[string]*DataPathUpLink //uuid to DataPathLink
+type DataPathNodeInDB  struct {
+    // UPF *UPF
+	DataPathNodeUPFNodeID NodeIDInDB 
 
-// 	// UpLinkTunnel previously GTPTunnel
-// 	UpLinkTunnelTEID   uint32
-// 	// DownLinkTunnel previously GTPTunnel
-// 	DownLinkTunnelTEID uint32
+	ULTunnelInfo	*TunnelInfo
+	DLTunnelInfo	*TunnelInfo
 
-// 	UpLinkTunnel GTPTunnelInDB
-// 	DownLinkTunnel GTPTunnelInDB
-
-// 	// for UE Routing Topology
-// 	// for special case:
-// 	// branching & leafnode
-
-// 	// InUse                bool
-// 	IsBranchingPoint bool
-// 	// DLDataPathLinkForPSA *DataPathUpLink
-// 	// BPUpLinkPDRs         map[string]*DataPathDownLink // uuid to UpLink
-// }
-
-type GTPTunnelInDB struct {
-	// SrcEndPoint previously DataPathNode
-	SrcEndPointUpLinkTunnelTEID  uint32 
-	SrcEndPointDownLinkTunnelTEID  uint32 
-	// SrcEndPointUPF UPF
-	SrcEndPointUPF *UPF
-	SrcEndPointIsBranchingPoint bool
-
-	// DestEndPoint
-	DestEndPointUpLinkTunnelTEID  uint32 
-	DestEndPointDownLinkTunnelTEID uint32
-	// DestEndPointUPF UPF
-	DestEndPointUPF *UPF
-	DestEndPointIsBranchingPoint bool
-
+    IsBranchingPoint bool
+}
+type TunnelInfo struct{
+	DataPathNodeUPFNodeID NodeIDInDB
 	TEID uint32
 	PDR  map[string]*PDR
 }
 
+type NodeIDInDB struct {
+	NodeIdType  uint8 // 0x00001111
+	NodeIdValue []byte
+}
 
 func SetupSmfCollection() {
 	fmt.Println("db - SetupSmfCollection!!")
@@ -171,57 +147,87 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	type Alias SMContext
 	// UPTunnel: GTPTunnel -> TEID
 
-	// SBIPFCPCommunicationChan omit, and make a new one when needed
-
-	// ActiveTxn: transaction -> TxnId
-	fmt.Println("db - in MarshalJSON ")
-	fmt.Println("db - in MarshalJSON smContext.ActiveTxn.NextTxn %v", smContext.ActiveTxn.NextTxn)
-	fmt.Println("db - in MarshalJSON smContext.ActiveTxn.Req %v", smContext.ActiveTxn.Req)
-	fmt.Println("db - in MarshalJSON smContext.ActiveTxn.Rsp %v", smContext.ActiveTxn.Rsp)
-	fmt.Println("db - in MarshalJSON smContext.ActiveTxn.Ctxt %v", smContext.ActiveTxn.Ctxt)
-	fmt.Println("db - end of logging")
 	var msgTypeVal string
 	msgTypeVal = svcmsgtypes.SmfMsgTypeString(smContext.ActiveTxn.MsgType)
 	fmt.Println("db - in MarshalJSON ", msgTypeVal)
-	activeTxnVal := TransactionInDB{
-		startTime: smContext.ActiveTxn.StartTime(),
-		endTime: smContext.ActiveTxn.EndTime(),
-		TxnId: smContext.ActiveTxn.TxnId,
-		Priority: smContext.ActiveTxn.Priority,
-		// Req: smContext.ActiveTxn.Req,
-		// Rsp: smContext.ActiveTxn.Rsp,
-		// Ctxt: smContext.ActiveTxn.Ctxt,
-		MsgType: msgTypeVal,
-		CtxtKey: smContext.ActiveTxn.CtxtKey,
-		Err: smContext.ActiveTxn.Err,
-		// Status: smContext.ActiveTxn.Status,
-		// NextTxnId: smContext.ActiveTxn.NextTxn.TxnId,
-		// TxnFsmLog: smContext.ActiveTxn.TxnFsmLog,
-	}
-	if smContext.ActiveTxn.Req != nil {
-		activeTxnVal.Req = smContext.ActiveTxn.Req
-	}
-	if smContext.ActiveTxn.Rsp != nil {
-		activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
-	}
-	if smContext.ActiveTxn.Ctxt != nil {
-		activeTxnVal.Ctxt = smContext.ActiveTxn.Ctxt
-	}
-	// tmpVal := activeTxnVal.NextTxn
-	// while tmpVal != nil {
-	// 	activeTxnVal.NextTxnId = smContext.ActiveTxn.NextTxn.TxnId
+	var activeTxnVal TransactionInDB
+	if smContext.ActiveTxn != nil {
+		activeTxnVal.startTime =  smContext.ActiveTxn.StartTime()
+		activeTxnVal.endTime = smContext.ActiveTxn.EndTime()
+		activeTxnVal.TxnId = smContext.ActiveTxn.TxnId
+		activeTxnVal.Priority= smContext.ActiveTxn.Priority
+			// Req: smContext.ActiveTxn.Req,
+			// Rsp: smContext.ActiveTxn.Rsp,
+			// Ctxt: smContext.ActiveTxn.Ctxt,
+		activeTxnVal.MsgType= msgTypeVal
+		activeTxnVal.CtxtKey= smContext.ActiveTxn.CtxtKey
+		activeTxnVal.Err= smContext.ActiveTxn.Err
+			// Status: smContext.ActiveTxn.Status,
+			// NextTxnId: smContext.ActiveTxn.NextTxn.TxnId,
+			// TxnFsmLog: smContext.ActiveTxn.TxnFsmLog,
+	} 
+
+	fmt.Println("db - in MarshalJSON after activeTxnVal")
+	// if smContext.ActiveTxn.Req != nil {
+	// 	activeTxnVal.Req = smContext.ActiveTxn.Req
 	// }
+	// if smContext.ActiveTxn.Rsp != nil {
+	// 	activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
+	// }
+	// if smContext.ActiveTxn.Ctxt != nil {
+	// 	activeTxnVal.Ctxt = smContext.ActiveTxn.Ctxt
+	// }
+	
+	/*
+	dataPathPoolInDBVal:= make(map[int64]*DataPathInDB)
 
-	// store transaction in DB
-	// StoreTxnInDB(&activeTxnVal)
+	// var val1 interface{}
+	// var tmp2 interface{}
 
+	var upTunnelVal UPTunnelInDB
+	if smContext.Tunnel != nil {
+		upTunnelVal.ANInformation = smContext.Tunnel.ANInformation
+
+		if smContext.Tunnel.DataPathPool != nil {
+			fmt.Println("db - smContext.Tunnel.DataPathPool len ",len(smContext.Tunnel.DataPathPool)) 
+			// for key, val := range smContext.Tunnel.DataPathPool {
+
+			// 	val1 = val
+			// 	dataPath := val1.(*DataPath)
+				
+			// 	// tmp := dataPath.FirstDPNode
+			// 	// tmp2 = tmp
+
+			// 	// dataPathNode := tmp2.(*DataPathNode)
+
+			// 	// convert dataPathNode to DataPathNodeInDB 
+			// 	// dataPathNodeInDBVal := DFSStoreDataPathNode(dataPathNode)
+			// 	dataPathNodeInDBVal := &DataPathNodeInDB{}
+
+			// 	fmt.Println("db - in MarshalJSON dataPathNodeInDBVal = %v", dataPathNodeInDBVal)
+				
+			// 	newDataPathInDB := &DataPathInDB{
+			// 		Activated: dataPath.Activated,
+			// 		IsDefaultPath: dataPath.IsDefaultPath,
+			// 		Destination: dataPath.Destination,
+			// 		HasBranchingPoint: dataPath.HasBranchingPoint,
+			// 		FirstDPNode: dataPathNodeInDBVal,
+			//	}
+
+				// dataPathPoolInDBVal[key] = newDataPathInDB
+			// }
+			upTunnelVal.DataPathPool = dataPathPoolInDBVal
+		}
+	}
+	*/
+	
+	fmt.Println("db - in MarshalJSON before return")
+	
 	return json.Marshal(&struct {
-		// UPTunnel
 		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		// Tunnel	UPTunnelInDB	`json:"upTunnel"`
+		// Tunnel	UPTunnelInDB	`json:"tunnel"`
 		*Alias
 	}{
-		// UPTunnel: upTunnelVal
 		ActiveTxn: activeTxnVal,
 		// Tunnel: upTunnelVal,
 		Alias:       (*Alias)(smContext),
@@ -229,10 +235,11 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 }
 
 func (smContext *SMContext) UnmarshalJSON(data []byte) error {
+	fmt.Println("db - in UnmarshalJSON")
 	type Alias SMContext
 	aux := &struct {
 		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		// Tunnel	UPTunnelInDB	`json:"upTunnel"`
+		// Tunnel	UPTunnelInDB	`json:"tunnel"`
 		*Alias
 	}{
 		Alias: (*Alias)(smContext),
@@ -256,40 +263,49 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 	// // need to retrieve next txn in db
 	// // smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
 	// smContext.ActiveTxn.TxnFsmLog = aux.ActiveTxn.TxnFsmLog
+	
+	/*
+	var val1 interface{}
+	// var tmp2 interface{}
+	
+	if &aux.Tunnel != nil {
 
-	// recover Tunnel
+		smContext.Tunnel.ANInformation = aux.Tunnel.ANInformation
+		smContext.Tunnel.PathIDGenerator = idgenerator.NewGenerator(1, 2147483647)
+		smContext.Tunnel.DataPathPool = make(DataPathPool)
 
-	// recover Tunnel.DataPathPool
+		for key, val := range aux.Tunnel.DataPathPool {
+			val1 = val
+			dataPathInDB := val1.(*DataPathInDB)
 
-	// recover Tunnel.DataPathPool[*] - DataPath
+			// tmp := dataPathInDB.FirstDPNode
+			// tmp2 = tmp
+			// dataPathNodeInDBVal := tmp2.(*DataPathNodeInDB)
+			// dataPathNodeVal := DFSRecoverDataPathNode(dataPathNodeInDBVal)
+			dataPathNodeVal := &DataPathNode{}
 
-	// recover Tunnel.DataPathPool[*].DataPathNode
-
-	// recover Tunnel.DataPathPool[*].DataPathNode.UpLinkTunnel/DownLinkTunnel
-
-	// recover Tunnel.DataPathPool[*].DataPathNode.UpLinkTunnel/DownLinkTunnel.SrcEndPoint/DestEndPoint
-
+			newDataPath := &DataPath{
+				Activated: dataPathInDB.Activated,
+				IsDefaultPath: dataPathInDB.IsDefaultPath,
+				Destination: dataPathInDB.Destination,
+				HasBranchingPoint: dataPathInDB.HasBranchingPoint,
+				FirstDPNode: dataPathNodeVal,				
+			}
+			smContext.Tunnel.DataPathPool[key] = newDataPath
+		}
+		
+		fmt.Println("smContext.Tunnel.DataPathPool %v", smContext.Tunnel.DataPathPool)
+	}
+	*/
+	
+	fmt.Println("db - in UnMarshalJSON before return")
+	
 	return nil
 }
 
 
 
-func ToBsonM(data *SMContext) (ret bson.M) {
 
-	// Marshal data into json format
-	tmp, err := json.Marshal(data)
-	if err != nil {
-		logger.CtxLog.Errorf("SMContext marshall error: %v", err)
-	}
-
-	// unmarshal data into bson format
-	err = json.Unmarshal(tmp, &ret)
-	if err != nil {
-		logger.CtxLog.Errorf("SMContext unmarshall error: %v", err)
-	}
-
-	return
-}
 func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 
 	// Marshal data into json format
@@ -297,7 +313,7 @@ func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 	if err != nil {
 		logger.CtxLog.Errorf("SMContext marshall error: %v", err)
 	}
-
+	
 	// unmarshal data into bson format
 	err = json.Unmarshal(tmp, &ret)
 	if err != nil {
@@ -307,14 +323,41 @@ func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 	return
 }
 
-func StoreContextInDB(smContext *SMContext) {
+func ToBsonM(data *SMContext) (ret bson.M) {
+	
+	// Marshal data into json format
+	fmt.Println("db - in ToBsonM before marshal")
+	tmp, err := json.Marshal(data)
+	if err != nil {
+		logger.CtxLog.Errorf("SMContext marshall error: %v", err)
+	}
+
+	// unmarshal data into bson format
+	fmt.Println("db - in ToBsonM before Unmarshal")
+	err = json.Unmarshal(tmp, &ret)
+	if err != nil {
+		logger.CtxLog.Errorf("SMContext unmarshall error: %v", err)
+	}
+
+	return
+}
+
+func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
 	smContextBsonA := ToBsonM(smContext)
+	fmt.Println("db - in StoreSmContextInDB after ToBsonM")
 	filter := bson.M{"ref": smContext.Ref}
-	logger.CtxLog.Infof("filter : ", filter)
+	logger.CtxLog.Infof("filter: ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
-	fmt.Println("db - finished Store SMContext In DB!!")
+	fmt.Println("db - finished Store SMContext In DB!!---checking")
+
+	filter = bson.M{}
+	filter["ref"] = smContext.Ref
+
+	result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
+
+	fmt.Println("StoreSmContextInDB, smf state json : ", result)
 }
 
 type SeidSmContextRef struct {
@@ -336,15 +379,25 @@ func StoreSeidContextInDB(seid uint64, smContext *SMContext) {
 	fmt.Println("db - finished StoreSeidContextInDB In DB!!")
 }
 
-func GetSMContextByRefInDB(ref string) {
+func GetSMContextByRefInDB(ref string) (smContext *SMContext){
 	filter := bson.M{}
 	filter["ref"] = ref
 
 	result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
 
 	fmt.Println("GetSMContextByRefInDB, smf state json : ", result)
-
 	// TBA Return SM context, reconstruct SM context from DB json
+	err := json.Unmarshal(mapToByte(result), smContext)
+	
+	smContext.SMLock.Lock()
+	defer smContext.SMLock.Unlock()
+
+	if err != nil {
+		logger.CtxLog.Errorf("smContext unmarshall error: %v", err)
+		return nil
+	}
+	smContext.initLogTags()
+	return smContext
 }
 
 func GetSMContextBySEIDInDB(seid uint64){
@@ -375,6 +428,3 @@ func mapToByte(data map[string]interface{}) (ret []byte) {
 	ret, _ = json.Marshal(data)
 	return
 }
-
-
-
