@@ -178,10 +178,10 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	// 	activeTxnVal.Ctxt = smContext.ActiveTxn.Ctxt
 	// }
 	
-	/*
+	
 	dataPathPoolInDBVal:= make(map[int64]*DataPathInDB)
 
-	// var val1 interface{}
+	var val1 interface{}
 	// var tmp2 interface{}
 
 	var upTunnelVal UPTunnelInDB
@@ -190,46 +190,45 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 
 		if smContext.Tunnel.DataPathPool != nil {
 			fmt.Println("db - smContext.Tunnel.DataPathPool len ",len(smContext.Tunnel.DataPathPool)) 
-			// for key, val := range smContext.Tunnel.DataPathPool {
+			for key, val := range smContext.Tunnel.DataPathPool {
 
-			// 	val1 = val
-			// 	dataPath := val1.(*DataPath)
+				val1 = val
+				dataPath := val1.(*DataPath)
 				
 			// 	// tmp := dataPath.FirstDPNode
 			// 	// tmp2 = tmp
 
 			// 	// dataPathNode := tmp2.(*DataPathNode)
 
-			// 	// convert dataPathNode to DataPathNodeInDB 
-			// 	// dataPathNodeInDBVal := DFSStoreDataPathNode(dataPathNode)
-			// 	dataPathNodeInDBVal := &DataPathNodeInDB{}
+				// convert dataPathNode to DataPathNodeInDB 
+				// dataPathNodeInDBVal := DFSStoreDataPathNode(dataPathNode)
+				dataPathNodeInDBVal := &DataPathNodeInDB{}
 
-			// 	fmt.Println("db - in MarshalJSON dataPathNodeInDBVal = %v", dataPathNodeInDBVal)
+				fmt.Println("db - in MarshalJSON dataPathNodeInDBVal = %v", dataPathNodeInDBVal)
 				
-			// 	newDataPathInDB := &DataPathInDB{
-			// 		Activated: dataPath.Activated,
-			// 		IsDefaultPath: dataPath.IsDefaultPath,
-			// 		Destination: dataPath.Destination,
-			// 		HasBranchingPoint: dataPath.HasBranchingPoint,
-			// 		FirstDPNode: dataPathNodeInDBVal,
-			//	}
+				newDataPathInDB := &DataPathInDB{
+					Activated: dataPath.Activated,
+					IsDefaultPath: dataPath.IsDefaultPath,
+					Destination: dataPath.Destination,
+					HasBranchingPoint: dataPath.HasBranchingPoint,
+					FirstDPNode: dataPathNodeInDBVal,
+				}
 
-				// dataPathPoolInDBVal[key] = newDataPathInDB
-			// }
+				dataPathPoolInDBVal[key] = newDataPathInDB
+			}
 			upTunnelVal.DataPathPool = dataPathPoolInDBVal
 		}
 	}
-	*/
 	
 	fmt.Println("db - in MarshalJSON before return")
 	
 	return json.Marshal(&struct {
 		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		// Tunnel	UPTunnelInDB	`json:"tunnel"`
+		Tunnel	UPTunnelInDB	`json:"tunnel"`
 		*Alias
 	}{
 		ActiveTxn: activeTxnVal,
-		// Tunnel: upTunnelVal,
+		Tunnel: upTunnelVal,
 		Alias:       (*Alias)(smContext),
 	})
 }
@@ -239,7 +238,7 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 	type Alias SMContext
 	aux := &struct {
 		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		// Tunnel	UPTunnelInDB	`json:"tunnel"`
+		Tunnel	UPTunnelInDB	`json:"tunnel"`
 		*Alias
 	}{
 		Alias: (*Alias)(smContext),
@@ -350,14 +349,14 @@ func StoreSmContextInDB(smContext *SMContext) {
 	logger.CtxLog.Infof("filter: ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
-	fmt.Println("db - finished Store SMContext In DB!!---checking")
+	// fmt.Println("db - finished Store SMContext In DB!!---checking")
 
-	filter = bson.M{}
-	filter["ref"] = smContext.Ref
+	// filter = bson.M{}
+	// filter["ref"] = smContext.Ref
 
-	result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
+	// result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
 
-	fmt.Println("StoreSmContextInDB, smf state json : ", result)
+	// fmt.Println("StoreSmContextInDB, smf state json : ", result)
 }
 
 type SeidSmContextRef struct {
