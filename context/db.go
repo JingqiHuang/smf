@@ -182,7 +182,7 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	dataPathPoolInDBVal:= make(map[int64]*DataPathInDB)
 
 	var val1 interface{}
-	// var tmp2 interface{}
+	var tmp2 interface{}
 
 	var upTunnelVal UPTunnelInDB
 	if smContext.Tunnel != nil {
@@ -195,14 +195,14 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 				val1 = val
 				dataPath := val1.(*DataPath)
 				
-			// 	// tmp := dataPath.FirstDPNode
-			// 	// tmp2 = tmp
+				tmp := dataPath.FirstDPNode
+				tmp2 = tmp
 
-			// 	// dataPathNode := tmp2.(*DataPathNode)
+				dataPathNode := tmp2.(*DataPathNode)
 
 				// convert dataPathNode to DataPathNodeInDB 
-				// dataPathNodeInDBVal := DFSStoreDataPathNode(dataPathNode)
-				dataPathNodeInDBVal := &DataPathNodeInDB{}
+				dataPathNodeInDBVal := DFSStoreDataPathNode(dataPathNode)
+				// dataPathNodeInDBVal := &DataPathNodeInDB{}
 
 				fmt.Println("db - in MarshalJSON dataPathNodeInDBVal = %v", dataPathNodeInDBVal)
 				

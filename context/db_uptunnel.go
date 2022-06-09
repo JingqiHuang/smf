@@ -156,7 +156,7 @@ func DFSStoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPat
 	var nilValTunnel *GTPTunnel = nil
 	fmt.Println("db - in DFSStoreDataPathNode")
 	if dataPathNode != nilValDpn {
-		// fmt.Println("db - in DFSStoreDataPathNode dataPathNode != nilValDpn %v", dataPathNode)
+		fmt.Println("db - in DFSStoreDataPathNode dataPathNode != nilValDpn %v", dataPathNode)
 
 		dataPathNodeInDB :=  &DataPathNodeInDB{
 			DataPathNodeUPFNodeID: GetNodeIDInDB(dataPathNode.UPF.NodeID),
@@ -168,7 +168,7 @@ func DFSStoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPat
 
 		upLinkTunnel := dataPathNode.UpLinkTunnel
 		downLinkTunnel := dataPathNode.DownLinkTunnel
-		// fmt.Println("db - in DFSStoreDataPathNode checking upLinkTunnel")
+		fmt.Println("db - in DFSStoreDataPathNode checking upLinkTunnel")
 		if upLinkTunnel != nilValTunnel {
 			// fmt.Println("db - in DFSStoreDataPathNode upLinkTunnel != nilValTunnel %v", upLinkTunnel)
 			// store uLTunnelInfo
@@ -194,7 +194,7 @@ func DFSStoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPat
 
 		}
 		
-		// fmt.Println("db - in DFSStoreDataPathNode checking downLinkTunnel")
+		fmt.Println("db - in DFSStoreDataPathNode checking downLinkTunnel")
 		if downLinkTunnel != nilValTunnel {
 			// fmt.Println("db - in DFSStoreDataPathNode downLinkTunnel != nilValTunnel %v ", downLinkTunnel)
 
