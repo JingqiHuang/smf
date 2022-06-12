@@ -62,6 +62,8 @@ func HandleSMPolicyUpdateNotify(eventData interface{}) error {
 	//smContext.SMLock.Lock()
 	//defer smContext.SMLock.Unlock()
 	//smContext.CommitSmPolicyDecision(true)
+
+	smf_context.StoreSmContextInDB(smContext)
 	return nil
 }
 

@@ -296,6 +296,8 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 
 	smContext.SubPduSessLog.Infof("PDUSessionSMContextCreate, PDU session context create success ")
 
+	fmt.Println("db - in HandlePDUSessionSMContextCreate")
+	smf_context.StoreSmContextInDB(smContext)
 	return nil
 	// TODO: UECM registration
 }
@@ -433,8 +435,8 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 	}
 	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go!!!")
 	smf_context.StoreSmContextInDB(smContext)
-	// tmp_smContext := smf_context.GetSMContextByRefInDB(smContext.Ref)
-	// fmt.Println("db - tmp_smContext %v", tmp_smContext)
+	tmp_smContext := smf_context.GetSMContextByRefInDB(smContext.Ref)
+	fmt.Println("db - tmp_smContext %v", tmp_smContext)
 
 
 	txn.Rsp = httpResponse
@@ -646,6 +648,7 @@ func releaseTunnel(smContext *smf_context.SMContext) bool {
 		}
 	}
 	smContext.Tunnel = nil
+	smf_context.StoreSmContextInDB(smContext)
 	return true
 }
 
@@ -720,6 +723,7 @@ func SendPduSessN1N2Transfer(smContext *smf_context.SMContext, success bool) err
 
 	smContext.CommitSmPolicyDecision(true)
 	smContext.SubPduSessLog.Infof("N1N2 Transfer completed")
+	smf_context.StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -767,6 +771,7 @@ func HandlePduSessN1N2TransFailInd(eventData interface{}) error {
 
 	httpResponse = HandlePFCPResponse(smContext, PFCPResponseStatus)
 	txn.Rsp = httpResponse
+	smf_context.StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -850,5 +855,6 @@ func HandlePFCPResponse(smContext *smf_context.SMContext,
 	}
 
 	smContext.SubPfcpLog.Traceln("Out HandlePFCPResponse")
+	smf_context.StoreSmContextInDB(smContext)
 	return httpResponse
 }

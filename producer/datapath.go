@@ -114,6 +114,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 				pfcp.nodeID, smContext, pfcp.pdrList, pfcp.farList, nil, pfcp.qerList)
 		}
 	}
+	smf_context.StoreSmContextInDB(smContext)
 }
 
 func removeDataPath(smContext *smf_context.SMContext, datapath *smf_context.DataPath) {

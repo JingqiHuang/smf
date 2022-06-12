@@ -225,7 +225,9 @@ func NewSMContext(identifier string, pduSessID int32) (smContext *SMContext) {
 	//initialise log tags
 	smContext.initLogTags()
 
-	// StoreSmContextInDB(smContext)
+	fmt.Println("db - in new smcontext smcontext val ", smContext)
+	fmt.Println("db - in new smcontext smcontext val ref", smContext.Ref)
+	StoreSmContextInDB(smContext)
 	return smContext
 }
 
@@ -316,6 +318,9 @@ func RemoveSMContext(ref string) {
 	//Sess Stats
 	smContextActive := decSMContextActive()
 	metrics.SetSessStats(SMF_Self().NfInstanceID, smContextActive)
+
+	fmt.Println("db - in RemoveSMContext DeleteContextInDB...")
+	DeleteContextInDB(smContext)
 }
 
 //*** add unit test ***//
