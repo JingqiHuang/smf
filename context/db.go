@@ -16,7 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/omec-project/smf/logger"
-	// "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	// "github.com/free5gc/openapi/models"
 
 	"github.com/omec-project/idgenerator"
@@ -31,7 +31,6 @@ import (
 
 const (
 	SmContextDataColl = "smf.data.smContext"
-	GTPTunnelDataColl = "smf.data.gtpTunnel"
 	TransactionDataCol = "smf.data.transaction"
 	SeidSmContextCol = "smf.data.seidSmContext"
 	NodeInDBCol = "smf.data.nodeInDB"
@@ -45,7 +44,7 @@ type TransactionInDB struct {
 	Priority           uint32
 	Req                interface{}
 	Rsp                interface{}
-	Ctxt               interface{}
+	CtxtRef             string
 	// MsgType            svcmsgtypes.SmfMsgType
 	MsgType				string
 	CtxtKey            string
@@ -121,17 +120,7 @@ func SetupSmfCollection() {
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on ref field.")
 	}
-	// MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	// _, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "pduSessionID")
-	// if err != nil {
-	// 	logger.CtxLog.Errorf("Create index failed on PDUSessionID field.")
-	// }
-
-	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(GTPTunnelDataColl, "teid")
-	if err != nil {
-		logger.CtxLog.Errorf("Create index failed on teid field.")
-	}
+	
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
 	_, err = MongoDBLibrary.CreateIndex(TransactionDataCol, "txnId")
 	if err != nil {
@@ -143,6 +132,7 @@ func SetupSmfCollection() {
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on TxnId field.")
 	}
+	testDB()
 	
 }
 
@@ -161,34 +151,32 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 		activeTxnVal.endTime = smContext.ActiveTxn.EndTime()
 		activeTxnVal.TxnId = smContext.ActiveTxn.TxnId
 		activeTxnVal.Priority= smContext.ActiveTxn.Priority
-			// Req: smContext.ActiveTxn.Req,
-			// Rsp: smContext.ActiveTxn.Rsp,
-			// Ctxt: smContext.ActiveTxn.Ctxt,
+		activeTxnVal.Req = smContext.ActiveTxn.Req
+		activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
 		activeTxnVal.MsgType= msgTypeVal
 		activeTxnVal.CtxtKey= smContext.ActiveTxn.CtxtKey
 		activeTxnVal.Err= smContext.ActiveTxn.Err
-			// Status: smContext.ActiveTxn.Status,
-			// NextTxnId: smContext.ActiveTxn.NextTxn.TxnId,
-			// TxnFsmLog: smContext.ActiveTxn.TxnFsmLog,
+		//  ---- why bug
+		fmt.Println("db - in MarshalJSON check req %v %v ", smContext.ActiveTxn.Req, (smContext.ActiveTxn.Req != nil))
+		fmt.Println("db - in MarshalJSON check rsp %v %v ", smContext.ActiveTxn.Rsp, (smContext.ActiveTxn.Rsp != nil))
+		fmt.Println("db - in MarshalJSON check CtxtRef ", (smContext.ActiveTxn.Ctxt.(*SMContext).Ref))
+		if smContext.ActiveTxn.NextTxn != nil {
+			activeTxnVal.NextTxnId = smContext.ActiveTxn.NextTxn.TxnId
+		}
+		if smContext.ActiveTxn.Ctxt != nil {
+			activeTxnVal.CtxtRef = smContext.ActiveTxn.Ctxt.(*SMContext).Ref
+		}
+		StoreTxnInDB(&activeTxnVal)
 	} 
 
 	fmt.Println("db - in MarshalJSON after activeTxnVal")
-	//  ---- why bug
-	// if smContext.ActiveTxn.Req != nil {
-	// 	activeTxnVal.Req = smContext.ActiveTxn.Req
-	// }
-	// if smContext.ActiveTxn.Rsp != nil {
-	// 	activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
-	// }
-	// if smContext.ActiveTxn.Ctxt != nil {
-	// 	activeTxnVal.Ctxt = smContext.ActiveTxn.Ctxt
-	// }
+	
 	
 	
 	dataPathPoolInDBVal:= make(map[int64]*DataPathInDB)
 
-	var val1 interface{}
-	var tmp2 interface{}
+	var dataPathInDBIf interface{}
+	var FirstDPNodeIf interface{}
 
 	var upTunnelVal UPTunnelInDB
 	if smContext.Tunnel != nil {
@@ -198,15 +186,15 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 			fmt.Println("db - smContext.Tunnel.DataPathPool len ",len(smContext.Tunnel.DataPathPool)) 
 			for key, val := range smContext.Tunnel.DataPathPool {
 
-				val1 = val
-				dataPath := val1.(*DataPath)
+				dataPathInDBIf = val
+				dataPath := dataPathInDBIf.(*DataPath)
 				
-				tmp := dataPath.FirstDPNode
-				tmp2 = tmp
+				firstDPNode := dataPath.FirstDPNode
+				FirstDPNodeIf = firstDPNode
 
-				dataPathNode := tmp2.(*DataPathNode)
-				fmt.Println("db - in MarshalJSON dataPathNode from dataPath.FirstDPNode %v", dataPathNode)
-				fmt.Println("db - in MarshalJSON dataPath %v", dataPath)
+				dataPathNode := FirstDPNodeIf.(*DataPathNode)
+				// fmt.Println("db - in MarshalJSON dataPathNode from dataPath.FirstDPNode %v", dataPathNode)
+				// fmt.Println("db - in MarshalJSON dataPath %v", dataPath)
 				// convert dataPathNode to DataPathNodeInDB 
 				dataPathNodeInDBVal := StoreDataPathNode(dataPathNode)
 				// dataPathNodeInDBVal := &DataPathNodeInDB{}
@@ -220,7 +208,7 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 					HasBranchingPoint: dataPath.HasBranchingPoint,
 					FirstDPNode: dataPathNodeInDBVal,
 				}
-
+				
 				dataPathPoolInDBVal[key] = newDataPathInDB
 			}
 			upTunnelVal.DataPathPool = dataPathPoolInDBVal
@@ -255,35 +243,30 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		fmt.Println("Err in customized unMarshall!!")
 		return err
 	}
-	// fmt.Println("db - after Unmarshal in customized unMarshall")
-	// fmt.Println("db - after Unmarshal in customized unMarshall smContext = %v", smContext)
-	// fmt.Println("db - after Unmarshal in customized unMarshall aux.ActiveTxn = %v",aux.ActiveTxn)
-
-	// fmt.Println("db - after Unmarshal in customized unMarshall start recover ActiveTxn")
+	
 	smContext.ActiveTxn = &transaction.Transaction{}
 	// recover ActiveTxn
 	smContext.ActiveTxn.SetStartTime(aux.ActiveTxn.StartTime())
 	smContext.ActiveTxn.SetEndTime(aux.ActiveTxn.EndTime())
 	smContext.ActiveTxn.TxnId = aux.ActiveTxn.TxnId
 	smContext.ActiveTxn.Priority = aux.ActiveTxn.Priority
-	// smContext.ActiveTxn.Req = aux.ActiveTxn.Req
-	// smContext.ActiveTxn.Rsp = aux.ActiveTxn.Rsp
-	// smContext.ActiveTxn.Ctxt = aux.ActiveTxn.Ctxt
+	smContext.ActiveTxn.Req = aux.ActiveTxn.Req
+	smContext.ActiveTxn.Rsp = aux.ActiveTxn.Rsp
+	smContext.ActiveTxn.Ctxt = GetSMContext(aux.ActiveTxn.CtxtKey)
 	smContext.ActiveTxn.MsgType = svcmsgtypes.SmfMsgTypeType(aux.ActiveTxn.MsgType)
 	smContext.ActiveTxn.CtxtKey = aux.ActiveTxn.CtxtKey
 	smContext.ActiveTxn.Err = aux.ActiveTxn.Err
 	fmt.Println("db - after Unmarshal in customized unMarshall finished recovered ActiveTxn %v", smContext.ActiveTxn)
-	// subField := logrus.Fields{"txnid": smContext.ActiveTxn.TxnId, "txntype": string(smContext.ActiveTxn.MsgType), "ctxtkey": smContext.ActiveTxn.CtxtKey}
-	// smContext.ActiveTxn.TxnFsmLog = logger.TxnFsmLog.WithFields(subField)
+	subField := logrus.Fields{"txnid": smContext.ActiveTxn.TxnId, "txntype": string(smContext.ActiveTxn.MsgType), "ctxtkey": smContext.ActiveTxn.CtxtKey}
+	smContext.ActiveTxn.TxnFsmLog = logger.TxnFsmLog.WithFields(subField)
 
-	// smContext.ActiveTxn.Status = aux.ActiveTxn.Status
-	// // need to retrieve next txn in db
-	// // smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
-	// smContext.ActiveTxn.TxnFsmLog = aux.ActiveTxn.TxnFsmLog
+	smContext.ActiveTxn.Status = make(chan bool)
+	// TODO: need to retrieve next txn in db
+	// smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
 	
 	fmt.Println("db - after Unmarshal in customized unMarshall start recover Tunnel %v", aux.Tunnel)
-	var val1 interface{}
-	var tmp2 interface{}
+	var dataPathInDBIf interface{}
+	var FirstDPNodeIf interface{}
 	var nilVal *UPTunnelInDB = nil
 	smContext.Tunnel = &UPTunnel{}
 	if &aux.Tunnel != nilVal {
@@ -292,90 +275,29 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		smContext.Tunnel.DataPathPool = NewDataPathPool()
 		fmt.Println("aux.Tunnel.DataPathPool %v", aux.Tunnel.DataPathPool)
 		for key, val := range aux.Tunnel.DataPathPool {
-			val1 = val
-			dataPathInDB := val1.(*DataPathInDB)
-			fmt.Println("dataPathInDB - val1 %v", *dataPathInDB)
-			fmt.Println("dataPathInDB - val1 dataPathInDB.FirstDPNode %v", *dataPathInDB.FirstDPNode)
-			fmt.Println("dataPathInDB - val1 dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID %v", dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID)
-			tmp := dataPathInDB.FirstDPNode
-			tmp2 = tmp
-			dataPathNodeInDBVal := tmp2.(*DataPathNodeInDB)
+			dataPathInDBIf = val
+			dataPathInDB := dataPathInDBIf.(*DataPathInDB)
+			fmt.Println("dataPathInDB - dataPathInDBIf %v", *dataPathInDB)
+			fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode %v", *dataPathInDB.FirstDPNode)
+			fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID %v", dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID)
+			firstDPNode := dataPathInDB.FirstDPNode
+			FirstDPNodeIf = firstDPNode
+			dataPathNodeInDBVal := FirstDPNodeIf.(*DataPathNodeInDB)
 			dataPathNodeVal := RecoverDataPathNode(dataPathNodeInDBVal)
 			fmt.Println("dataPathInDB - dataPathNodeVal after RecoverDataPathNode %v", dataPathNodeVal)
-			fmt.Println("dataPathInDB - dataPathNodeVal after RecoverDataPathNode == nil? %v", (dataPathNodeVal==nil))
-			fmt.Println("dataPathInDB - dataPathNodeVal after RecoverDataPathNode type", reflect.TypeOf(dataPathNodeVal))
-			fmt.Println("dataPathInDB - *dataPathNodeVal after RecoverDataPathNode %v", *dataPathNodeVal)
-			fmt.Println("dataPathInDB - *dataPathNodeVal after RecoverDataPathNode type", reflect.TypeOf(*dataPathNodeVal))
 			
 			newDataPath := NewDataPath()
-			// dataPathNodeVal := NewDataPathNode()
+			
 			newDataPath.Activated =  dataPathInDB.Activated
 			newDataPath.IsDefaultPath = dataPathInDB.IsDefaultPath
 			newDataPath.Destination = dataPathInDB.Destination
 			newDataPath.HasBranchingPoint = dataPathInDB.HasBranchingPoint
-			// fmt.Println("dataPathInDB - newDataPath before assigning FirstDPNode %v", newDataPath)
+			
 			newDataPath.FirstDPNode = dataPathNodeVal
 
-			/*
-			fmt.Println("\ndataPathInDB - dataPathNodeVal 1 %v", dataPathNodeVal)
-			fmt.Println("\ndataPathInDB - dataPathNodeVal type %v", reflect.TypeOf(dataPathNodeVal))
-			fmt.Println("\ndataPathInDB - newDataPath.Activated %v", newDataPath.Activated)
-			fmt.Println("\ndataPathInDB - newDataPath.IsDefaultPath %v", newDataPath.IsDefaultPath)
-			fmt.Println("\ndataPathInDB - newDataPath.Destination %v", newDataPath.Destination)
-			fmt.Println("\ndataPathInDB - newDataPath.HasBranchingPoint %v", newDataPath.HasBranchingPoint)
-			fmt.Println("\ndataPathInDB - dataPathNodeVal.UPF %v", dataPathNodeVal.UPF)
-			fmt.Println("\ndataPathInDB - dataPathNodeVal.UpLinkTunnel %v", dataPathNodeVal.UpLinkTunnel)
-			fmt.Println("\ndataPathInDB - dataPathNodeVal.DownLinkTunnel %v", dataPathNodeVal.DownLinkTunnel)
-			fmt.Println("\ndataPathInDB - dataPathNodeVal.IsBranchingPoint %v", dataPathNodeVal.IsBranchingPoint)
-			fmt.Println("dataPathInDB - newDataPath after assigning FirstDPNode ", newDataPath)
-			fmt.Println("dataPathInDB -  newDataPath == nil? %v", (newDataPath==nil))
-
-			tmp_dp := NewDataPath()
-			fmt.Println("dataPathInDB - before assigning node tmp_dp ", tmp_dp)
-			fmt.Println("dataPathInDB - tmp_dp.FirstDPNode ", tmp_dp.FirstDPNode)
-
-			node := NewDataPathNode()
-			
-			tmp_dp.FirstDPNode = node
-			fmt.Println("dataPathInDB - after assigning node tmp_dp ", tmp_dp)
-			fmt.Println("dataPathInDB - tmp_dp.FirstDPNode ", tmp_dp.FirstDPNode)
-			
-			
-			tmp_dp1 := NewDataPath()
-			// tmp_dp1.Activated =  dataPathInDB.Activated
-			fmt.Println("dataPathInDB - before assigning node tmp_dp1 ", tmp_dp1)
-			fmt.Println("dataPathInDB - tmp_dp1.FirstDPNode ", tmp_dp1.FirstDPNode)
-			node1 := &DataPathNode{
-				UPF: dataPathNodeVal.UPF,
-				UpLinkTunnel:   dataPathNodeVal.UpLinkTunnel,
-				DownLinkTunnel: dataPathNodeVal.DownLinkTunnel,
-				IsBranchingPoint: dataPathNodeVal.IsBranchingPoint,
-			}
-			
-			tmp_dp1.FirstDPNode = node1
-			
-			fmt.Println("dataPathInDB - newDataPath after assigning node1 ", newDataPath)
-			fmt.Println("dataPathInDB - after assigning node tmp_dp1 ", tmp_dp1)
-			fmt.Println("dataPathInDB - tmp_dp.FirstDPNode ", tmp_dp1.FirstDPNode)
-
-			tmp_dp2 := new(DataPath)
-			fmt.Println("dataPathInDB - before assigning node tmp_dp2 ", tmp_dp2)
-			fmt.Println("dataPathInDB - tmp_dp2.FirstDPNode ", tmp_dp2.FirstDPNode)
-
-			node2 := new(DataPathNode)
-			
-			tmp_dp2.FirstDPNode = node2
-			fmt.Println("dataPathInDB - after assigning node tmp_dp2 ", tmp_dp2)
-			fmt.Println("dataPathInDB - tmp_dp2.FirstDPNode ", tmp_dp2.FirstDPNode)
-			*/
-			newDataPath.FirstDPNode = node1
 			smContext.Tunnel.DataPathPool[key] = newDataPath
-			fmt.Println("dataPathInDB - key %v", key)
-			//TB debug!!!
+			
 			fmt.Println("dataPathInDB - newDataPath after smContext.Tunnel.DataPathPool[key] %v", newDataPath)
-			fmt.Printf("dataPathInDB - newDataPath type: %T\n", newDataPath)
-			// fmt.Println("dataPathInDB - &newDataPath %v", &newDataPath)
-			// fmt.Printf("dataPathInDB - &newDataPath type: %T\n", &newDataPath)
 		}
 		
 		fmt.Println("smContext.Tunnel.DataPathPool %v", smContext.Tunnel.DataPathPool)
@@ -441,7 +363,7 @@ type SeidSmContextRef struct {
 }
 
 func StoreSeidContextInDB(seid uint64, smContext *SMContext) {
-	fmt.Println("db - StoreSeidContextInDB In DB!!")
+	fmt.Println("db - StoreSeidContextInDB In DB!! smcontext ", smContext)
 	item := SeidSmContextRef{
 		Ref: smContext.Ref,
 		Seid: seid,
@@ -465,36 +387,50 @@ func GetSMContextByRefInDB(ref string) (smContext *SMContext){
 	// TBA Return SM context, reconstruct SM context from DB json
 	err := json.Unmarshal(mapToByte(result), smContext)
 	fmt.Println("GetSMContextByRefInDB, after Unmarshal : %v", smContext)
-	// smContext.SMLock.Lock()
-	// defer smContext.SMLock.Unlock()
+	smContext.SMLock.Lock()
+	defer smContext.SMLock.Unlock()
 
 	if err != nil {
 		logger.CtxLog.Errorf("smContext unmarshall error: %v", err)
 		return nil
 	}
-	// smContext.initLogTags()
-	// fmt.Println("GetSMContextByRefInDB, smf state smContext : %v", smContext)
+	
 	return smContext
 }
 
-func GetSMContextBySEIDInDB(seid uint64){
+func GetSMContextBySEIDInDB(seid uint64) (smContext *SMContext){
 	filter := bson.M{}
 	filter["seid"] = seid
+	
+	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
+	ref := result["ref"].(string)
+	fmt.Println("StoreSeidContextInDB, result string : ", ref)
+
+	return GetSMContextByRefInDB(ref)
+
+}
+
+func DeleteContextInDBBySEID(seid uint64) {
+	fmt.Println("db - delete SMContext In DB by seid!!")
+	// smContextBsonA := ToBsonM(smContext)
+	filter := bson.M{"seid": seid}
+	logger.CtxLog.Infof("filter : ", filter)
 	
 	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
 	seidStr := strconv.FormatInt(int64(seid), 10)
 	ref := result[seidStr].(string)
 	fmt.Println("GetSMContextBySEIDInDB, ref string : ", ref)
 
-	GetSMContextByRefInDB(ref)
-	// TBA Return SM context, reconstruct SM context from DB json
+	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)
+	DeleteContextInDBByRef(ref)
+	fmt.Println("db - finished delete SMContext by seid In DB!!")
 
 }
 
-func DeleteContextInDB(smContext *SMContext) {
+func DeleteContextInDBByRef(ref string) {
 	fmt.Println("db - delete SMContext In DB w ref!!")
 	// smContextBsonA := ToBsonM(smContext)
-	filter := bson.M{"ref": smContext.Ref}
+	filter := bson.M{"ref": ref}
 	logger.CtxLog.Infof("filter : ", filter)
 
 	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)
@@ -506,4 +442,14 @@ func mapToByte(data map[string]interface{}) (ret []byte) {
 	ret, _ = json.Marshal(data)
 	// fmt.Println("db - in mapToByte!! ret: %v", ret)
 	return 
+}
+
+func testDB(){
+	filter := bson.M{}
+	filter["txnID"] = -1
+
+	result := MongoDBLibrary.RestfulAPIGetOne(TransactionDataCol, filter)
+
+	print("in db - testdb() result ", result)
+	print("in db - testdb() result type ", reflect.TypeOf(result))
 }

@@ -96,11 +96,14 @@ func RecoverActiveTxn(txnID uint32) (txn *transaction.Transaction) {
 	txn.Priority = txnInDB.Priority
 	txn.Req = txnInDB.Req
 	txn.Rsp = txnInDB.Rsp
-	txn.Ctxt = txnInDB.Ctxt
+	// txn.Ctxt = txnInDB.Ctxt
 	txn.MsgType = svcmsgtypes.SmfMsgTypeType(txnInDB.MsgType)
 	txn.CtxtKey = txnInDB.CtxtKey
 	txn.Err = txnInDB.Err
 	txn.Status = make(chan bool)
+	if (txnInDB.CtxtRef != "") {
+		txn.Ctxt = GetSMContext(txnInDB.CtxtRef)
+	}
 
 	subField := logrus.Fields{"txnid": txnID,
 	"txntype": txnInDB.MsgType, "ctxtkey": txn.CtxtKey}

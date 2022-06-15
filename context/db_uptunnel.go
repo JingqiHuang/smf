@@ -8,12 +8,6 @@ import (
 
 	"github.com/omec-project/smf/logger"
 
-	// "github.com/omec-project/idgenerator"
-	// "net"
-	// "time"
-	// "github.com/omec-project/smf/msgtypes/svcmsgtypes"
-	// "strconv"
-	// "github.com/sirupsen/logrus"
 	"github.com/omec-project/pfcp/pfcpType"
 )
 
@@ -36,6 +30,25 @@ func GetNodeID(nodeIDInDB NodeIDInDB) (nodeID pfcpType.NodeID){
 	return nodeID
 }
 
+func testEq(a, b []byte) bool {
+    if len(a) != len(b) {
+		fmt.Println("in db - testEq len false ")
+        return false
+    }
+	if (len(a) == len(b)) && (len(a) == 0) {
+		fmt.Println("in db - testEq len true ")
+		return true
+	}
+    for i := range a {
+        if a[i] != b[i] {
+			fmt.Println("in db - testEq false ")
+            return false
+        }
+    }
+	fmt.Println("in db - testEq true ")
+    return true
+}
+
 func RecoverTunnel(tunnelInfo *TunnelInfo) (tunnel *GTPTunnel) {
 	fmt.Println("db - In RecoverTunnel")
 	tunnel = &GTPTunnel{
@@ -43,10 +56,21 @@ func RecoverTunnel(tunnelInfo *TunnelInfo) (tunnel *GTPTunnel) {
 		PDR: tunnelInfo.PDR,
 	}
 	var nilVal *NodeIDInDB = nil
+	var nilValNode *DataPathNode = nil
 	fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID = %v", tunnelInfo.DataPathNodeUPFNodeID)
+	empty_nodeID := &NodeIDInDB{}
+	fmt.Println("In RecoverTunnel bool2",(tunnelInfo.DataPathNodeUPFNodeID.NodeIdType == 0) && (testEq(tunnelInfo.DataPathNodeUPFNodeID.NodeIdValue, empty_nodeID.NodeIdValue)))
 	if &tunnelInfo.DataPathNodeUPFNodeID != nilVal {
-		endPoint := RecoverFirstDPNode(tunnelInfo.DataPathNodeUPFNodeID)
-		tunnel.SrcEndPoint = endPoint
+		fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID != nilVal")
+		if ((tunnelInfo.DataPathNodeUPFNodeID.NodeIdType == empty_nodeID.NodeIdType) && (testEq(tunnelInfo.DataPathNodeUPFNodeID.NodeIdValue, empty_nodeID.NodeIdValue))){
+			fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID == empty_nodeID")
+			endPoint := nilValNode
+			tunnel.SrcEndPoint = endPoint
+		} else {
+			fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID != empty_nodeID")
+			endPoint := RecoverFirstDPNode(tunnelInfo.DataPathNodeUPFNodeID)
+			tunnel.SrcEndPoint = endPoint
+		}
 	}
 	// TBA: recover dst endPoint
 	return tunnel		
@@ -58,6 +82,7 @@ func RecoverFirstDPNode(nodeIDInDB NodeIDInDB) (dataPathNode *DataPathNode) {
 	dataPathNode = &DataPathNode{
 		IsBranchingPoint: nodeInDB.IsBranchingPoint,
 		UPF: RetrieveUPFNodeByNodeID(GetNodeID(nodeInDB.DataPathNodeUPFNodeID)),
+		// UPF: RetrieveUPFNodeByNodeID(GetNodeID(nodeIDInDB)),
 	}
 	var nilVal *TunnelInfo = nil
 	if nodeInDB.ULTunnelInfo != nilVal {
@@ -71,7 +96,7 @@ func RecoverFirstDPNode(nodeIDInDB NodeIDInDB) (dataPathNode *DataPathNode) {
 	return dataPathNode
 }
 
-func ToBsonMNodeInDB(data DataPathNodeInDB) (ret bson.M) {
+func ToBsonMNodeInDB(data *DataPathNodeInDB) (ret bson.M) {
 
 	// Marshal data into json format
 	tmp, err := json.Marshal(data)
@@ -88,7 +113,7 @@ func ToBsonMNodeInDB(data DataPathNodeInDB) (ret bson.M) {
 	return
 }
 
-func StoreNodeInDB(nodeInDB DataPathNodeInDB) {
+func StoreNodeInDB(nodeInDB *DataPathNodeInDB) {
 	fmt.Println("db - storeNodeInDB In DB!!")
 	itemBsonA := ToBsonMNodeInDB(nodeInDB)
 	filter := bson.M{"nodeIDInDB": nodeInDB.DataPathNodeUPFNodeID}
@@ -105,7 +130,7 @@ func GetNodeInDBFromDB(nodeIDInDB NodeIDInDB) (dataPathNodeInDB *DataPathNodeInD
 	result := MongoDBLibrary.RestfulAPIGetOne(NodeInDBCol, filter)
 
 	dataPathNodeInDB = new(DataPathNodeInDB)
-	fmt.Println("GetNodeInDB, smf state json : ", result)
+	fmt.Println("GetNodeInDBFromDB, smf state json : ", result)
 
 	err := json.Unmarshal(mapToByte(result), dataPathNodeInDB)
 	if err != nil {
@@ -184,12 +209,8 @@ func StoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPathNo
 
 			// upLinkTunnelDEP := upLinkTunnel.DestEndPoint
 			upLinkTunnelSEP := upLinkTunnel.SrcEndPoint
-			// fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP %v", upLinkTunnelSEP)
-			// fmt.Println("db - in StoreDataPathNode upLinkTunnelDEP %v", upLinkTunnelDEP)
-			// fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP ==  %v", (upLinkTunnelSEP == dataPathNode))
-			// fmt.Println("db - in StoreDataPathNode upLinkTunnelDEP ==  %v", (upLinkTunnelDEP == dataPathNode))
 			if upLinkTunnelSEP != nilValDpn {
-				// fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP != nilValDpn")
+				fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP != nilValDpn")
 				// fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP != nilValDpn %v", upLinkTunnelDEP)
 				uLTunnelInfo.DataPathNodeUPFNodeID = GetNodeIDInDB(upLinkTunnelSEP.UPF.NodeID)
 			} 
@@ -210,13 +231,8 @@ func StoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPathNo
 			dLTunnelInfo.PDR = downLinkTunnel.PDR
 
 			dlLinkTunnelSEP := downLinkTunnel.SrcEndPoint
-			// dlLinkTunnelDEP := downLinkTunnel.DestEndPoint
-			// fmt.Println("db - in StoreDataPathNode dlLinkTunnelSEP %v", dlLinkTunnelSEP)
-			// fmt.Println("db - in StoreDataPathNode dlLinkTunnelDEP %v", dlLinkTunnelDEP)
-			// fmt.Println("db - in StoreDataPathNode dlLinkTunnelSEP ==  %v", (dlLinkTunnelSEP == dataPathNode))
-			// fmt.Println("db - in StoreDataPathNode dlLinkTunnelDEP ==  %v", (dlLinkTunnelDEP == dataPathNode))
 			if dlLinkTunnelSEP != nilValDpn {
-				// fmt.Println("db - in StoreDataPathNode dlLinkTunnelSEP != nilValDpn")
+				fmt.Println("db - in StoreDataPathNode dlLinkTunnelSEP != nilValDpn")
 				dLTunnelInfo.DataPathNodeUPFNodeID = GetNodeIDInDB(dlLinkTunnelSEP.UPF.NodeID)
 			} 
 			// else {
@@ -225,7 +241,7 @@ func StoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPathNo
 			dataPathNodeInDB.DLTunnelInfo = dLTunnelInfo
 		}
 		fmt.Println("db - in StoreDataPathNode return dataPathNodeInDB")
-
+		StoreNodeInDB(dataPathNodeInDB)
 		return dataPathNodeInDB
 	}
 	return nil

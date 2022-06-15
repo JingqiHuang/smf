@@ -243,7 +243,12 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 		// Use default route
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextCreate, no pre-config route")
 		defaultUPPath := smf_context.GetUserPlaneInformation().GetDefaultUserPlanePathByDNN(upfSelectionParams)
+		
+		smContext.SubPduSessLog.Infof("upfSelectionParams %v", upfSelectionParams)
+		smContext.SubPduSessLog.Infof("smf_context.GetUserPlaneInformation() res %v", smf_context.GetUserPlaneInformation())
+		smContext.SubPduSessLog.Infof("defaultUPPath %v", defaultUPPath)
 		defaultPath = smf_context.GenerateDataPath(defaultUPPath, smContext)
+		smContext.SubPduSessLog.Infof("defaultPath %v", defaultPath)
 		if defaultPath != nil {
 			defaultPath.IsDefaultPath = true
 			smContext.Tunnel.AddDataPath(defaultPath)
@@ -435,9 +440,8 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 	}
 	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go!!!")
 	smf_context.StoreSmContextInDB(smContext)
-	tmp_smContext := smf_context.GetSMContextByRefInDB(smContext.Ref)
-	fmt.Println("db - tmp_smContext %v", tmp_smContext)
-
+	tmp_ctx := smf_context.GetSMContextByRefInDB(smContext.Ref)
+	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go tmp_ctx = ", tmp_ctx)
 
 	txn.Rsp = httpResponse
 	return nil

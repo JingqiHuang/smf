@@ -289,6 +289,8 @@ func (smContext *SMContext) ChangeState(nextState SMContextState) {
 func GetSMContext(ref string) (smContext *SMContext) {
 	if value, ok := smContextPool.Load(ref); ok {
 		smContext = value.(*SMContext)
+	} else {
+		return GetSMContextByRefInDB(ref)
 	}
 
 	return
@@ -307,6 +309,8 @@ func RemoveSMContext(ref string) {
 
 	for _, pfcpSessionContext := range smContext.PFCPContext {
 		seidSMContextMap.Delete(pfcpSessionContext.LocalSEID)
+		DeleteContextInDBBySEID(pfcpSessionContext.LocalSEID)
+
 	}
 
 	//Release UE IP-Address
@@ -320,13 +324,15 @@ func RemoveSMContext(ref string) {
 	metrics.SetSessStats(SMF_Self().NfInstanceID, smContextActive)
 
 	fmt.Println("db - in RemoveSMContext DeleteContextInDB...")
-	DeleteContextInDB(smContext)
+	DeleteContextInDBByRef(smContext.Ref)
 }
 
 //*** add unit test ***//
 func GetSMContextBySEID(SEID uint64) (smContext *SMContext) {
 	if value, ok := seidSMContextMap.Load(SEID); ok {
 		smContext = value.(*SMContext)
+	} else {
+		return GetSMContextBySEIDInDB(SEID)
 	}
 	return
 }
@@ -458,6 +464,7 @@ func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
 			}
 
 			seidSMContextMap.Store(allocatedSEID, smContext)
+			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
 }
