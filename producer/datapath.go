@@ -9,6 +9,8 @@ import (
 	smf_context "github.com/omec-project/smf/context"
 	"github.com/omec-project/smf/logger"
 	pfcp_message "github.com/omec-project/smf/pfcp/message"
+
+	"fmt"
 )
 
 type PFCPState struct {
@@ -60,8 +62,9 @@ func SendPFCPRule(smContext *smf_context.SMContext, dataPath *smf_context.DataPa
 // SendPFCPRules send all datapaths to UPFs
 func SendPFCPRules(smContext *smf_context.SMContext) {
 	pfcpPool := make(map[string]*PFCPState)
-
+	// fmt.Println("db - in SendPFCPRules smContext.Tunnel.DataPathPool %v", smContext.Tunnel.DataPathPool)
 	for _, dataPath := range smContext.Tunnel.DataPathPool {
+		// fmt.Println("db - in SendPFCPRules dataPath.Activated %v", dataPath.Activated)
 		if dataPath.Activated {
 			for curDataPathNode := dataPath.FirstDPNode; curDataPathNode != nil; curDataPathNode = curDataPathNode.Next() {
 				pdrList := make([]*smf_context.PDR, 0, 2)
@@ -106,6 +109,8 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 	}
 	for ip, pfcp := range pfcpPool {
 		sessionContext, exist := smContext.PFCPContext[ip]
+		// fmt.Println("db - in SendPFCPRules before SendPfcpSessionEstablishmentRequest sessionContext.RemoteSEID and exist and pfcp.nodeID", sessionContext.RemoteSEID,
+		// exist, pfcp.nodeID)
 		if !exist || sessionContext.RemoteSEID == 0 {
 			pfcp_message.SendPfcpSessionEstablishmentRequest(
 				pfcp.nodeID, smContext, pfcp.pdrList, pfcp.farList, nil, pfcp.qerList)
@@ -114,6 +119,8 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 				pfcp.nodeID, smContext, pfcp.pdrList, pfcp.farList, nil, pfcp.qerList)
 		}
 	}
+
+	fmt.Println("db - in SendPFCPRules before StoreSmContextInDB")
 	smf_context.StoreSmContextInDB(smContext)
 }
 

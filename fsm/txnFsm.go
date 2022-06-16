@@ -19,16 +19,18 @@ import (
 
 func (SmfTxnFsm) TxnInit(txn *transaction.Transaction) (transaction.TxnEvent, error) {
 	txn.TxnFsmLog.Debugf("handle event[%v] ", transaction.TxnEventInit.String())
+	fmt.Println("db - TxnInit handle event[%v] ", transaction.TxnEventInit.String())
 	return transaction.TxnEventDecode, nil
 }
 
 func (SmfTxnFsm) TxnDecode(txn *transaction.Transaction) (transaction.TxnEvent, error) {
 
+	fmt.Println("db - TxnInit TxnDecode ")
 	return transaction.TxnEventLoadCtxt, nil
 }
 
 func (SmfTxnFsm) TxnLoadCtxt(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - TxnInit TxnLoadCtxt ")
 	switch txn.MsgType {
 	case svcmsgtypes.CreateSmContext:
 		req := txn.Req.(models.PostSmContextsRequest)
@@ -46,7 +48,7 @@ func (SmfTxnFsm) TxnLoadCtxt(txn *transaction.Transaction) (transaction.TxnEvent
 		fallthrough
 	case svcmsgtypes.SmPolicyUpdateNotification:
 		txn.Ctxt = smf_context.GetSMContext(txn.CtxtKey)
-
+		// fmt.Println("db - TxnInit TxnLoadCtxt txn.Ctxt = ", txn.Ctxt)
 	case svcmsgtypes.PfcpSessCreate:
 		fallthrough
 	case svcmsgtypes.N1N2MessageTransfer:
@@ -62,13 +64,15 @@ func (SmfTxnFsm) TxnLoadCtxt(txn *transaction.Transaction) (transaction.TxnEvent
 	if txn.Ctxt.(*smf_context.SMContext) == nil {
 		txn.TxnFsmLog.Errorf("handle event[%v], ctxt [%v] not found", transaction.TxnEventLoadCtxt.String(), txn.CtxtKey)
 		return transaction.TxnEventFailure, fmt.Errorf("ctxt not found")
+	} else {
+		fmt.Println("db - TxnInit TxnLoadCtxt txn.Ctxt found ")
 	}
 
 	return transaction.TxnEventCtxtPost, nil
 }
 
 func (SmfTxnFsm) TxnCtxtPost(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - in TxnCtxtPost")
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 
 	//Lock the bus before modifying
@@ -76,13 +80,17 @@ func (SmfTxnFsm) TxnCtxtPost(txn *transaction.Transaction) (transaction.TxnEvent
 	defer smContext.SMTxnBusLock.Unlock()
 
 	//If already Active Txn running then post it to SMF Txn Bus
+
 	if smContext.ActiveTxn != nil {
 
 		smContext.TxnBus = smContext.TxnBus.AddTxn(txn)
 
 		//Txn has been posted and shall be scheduled later
-		txn.TxnFsmLog.Debugf("event[%v], next-event[%v], txn queued ", transaction.TxnEventCtxtPost.String(), transaction.TxnEventExit.String())
+		fmt.Println("db - in TxnCtxtPost event[%v], next-event[%v], txn queued ", transaction.TxnEventCtxtPost.String(), transaction.TxnEventExit.String())
 		return transaction.TxnEventQueue, nil
+	} else {
+		fmt.Println("db - in TxnCtxtPost smContext.ActiveTxn == nil")
+
 	}
 
 	//No other Txn running, lets proceed with current Txn
@@ -91,7 +99,7 @@ func (SmfTxnFsm) TxnCtxtPost(txn *transaction.Transaction) (transaction.TxnEvent
 }
 
 func (SmfTxnFsm) TxnCtxtRun(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - in TxnCtxtRun")
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 
 	//There shouldn't be any active Txn if current Txn has reached to Run state
@@ -109,7 +117,7 @@ func (SmfTxnFsm) TxnCtxtRun(txn *transaction.Transaction) (transaction.TxnEvent,
 }
 
 func (SmfTxnFsm) TxnProcess(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - in TxnProcess")
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 	if smContext == nil {
 		txn.TxnFsmLog.Errorf("event[%v], next-event[%v], SM context invalid ", transaction.TxnEventProcess.String(), transaction.TxnEventFailure.String())
@@ -117,7 +125,7 @@ func (SmfTxnFsm) TxnProcess(txn *transaction.Transaction) (transaction.TxnEvent,
 	}
 
 	var event SmEvent
-
+	fmt.Println("db - in TxnProcess txn.MsgType %s ", txn.MsgType)
 	switch txn.MsgType {
 	case svcmsgtypes.CreateSmContext:
 		event = SmEventPduSessCreate
@@ -142,20 +150,24 @@ func (SmfTxnFsm) TxnProcess(txn *transaction.Transaction) (transaction.TxnEvent,
 	eventData := SmEventData{Txn: txn}
 
 	if err := HandleEvent(smContext, event, eventData); err != nil {
+		fmt.Println("db - in TxnProcess HandleEvent %v err %s", transaction.TxnEventProcess.String(), err.Error())
 		smContext.SubFsmLog.Errorf("handle event[%v], err [%s]", transaction.TxnEventProcess.String(), err.Error())
 		return transaction.TxnEventFailure, err
+	} else {
+		fmt.Println("db - in TxnProcess HandleEvent %v", transaction.TxnEventProcess.String())
 	}
 	return transaction.TxnEventSuccess, nil
 }
 
 func (SmfTxnFsm) TxnSuccess(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - in TxnSuccess")
 	switch txn.MsgType {
 	case svcmsgtypes.PfcpSessCreate:
-
+		fmt.Println("db - in TxnSuccess -  PfcpSessCreate")
 		nextTxn := transaction.NewTransaction(nil, nil, svcmsgtypes.SmfMsgType(svcmsgtypes.N1N2MessageTransfer))
 		nextTxn.Ctxt = txn.Ctxt
 		smContext := txn.Ctxt.(*smf_context.SMContext)
+		// fmt.Println("db - in TxnSuccess -  smContext ", smContext)
 		smContext.SMTxnBusLock.Lock()
 		smContext.TxnBus = smContext.TxnBus.AddTxn(nextTxn)
 		smContext.SMTxnBusLock.Unlock()
@@ -173,7 +185,7 @@ func (SmfTxnFsm) TxnSuccess(txn *transaction.Transaction) (transaction.TxnEvent,
 }
 
 func (SmfTxnFsm) TxnFailure(txn *transaction.Transaction) (transaction.TxnEvent, error) {
-
+	fmt.Println("db - in TxnFailure")
 	//Put Failure Rsp
 	switch txn.MsgType {
 	case svcmsgtypes.UpdateSmContext:

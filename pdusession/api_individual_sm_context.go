@@ -14,6 +14,7 @@
 package pdusession
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -93,6 +94,7 @@ func HTTPUpdateSmContext(c *gin.Context) {
 	request.JsonData = new(models.SmContextUpdateData)
 
 	s := strings.Split(c.GetHeader("Content-Type"), ";")
+	// fmt.Println("db - in HTTPUpdateSmContext s = ", s)
 	var err error
 	switch s[0] {
 	case "application/json":
@@ -101,6 +103,7 @@ func HTTPUpdateSmContext(c *gin.Context) {
 		err = c.ShouldBindWith(&request, openapi.MultipartRelatedBinding{})
 	}
 	if err != nil {
+		fmt.Println("db - in HTTPUpdateSmContext err   = ", err)
 		problemDetail := "[Request Body] " + err.Error()
 		rsp := models.ProblemDetails{
 			Title:  "Malformed request syntax",
@@ -117,11 +120,16 @@ func HTTPUpdateSmContext(c *gin.Context) {
 
 	req := http_wrapper.NewRequest(c.Request, request)
 	req.Params["smContextRef"] = c.Params.ByName("smContextRef")
+	fmt.Println("db - in HTTPUpdateSmContext smContextRef", req.Params["smContextRef"])
 
 	smContextRef := req.Params["smContextRef"]
 
+	logger.PduSessLog.Info("db - in HTTPUpdateSmContext NewTransaction")
+
 	txn := transaction.NewTransaction(req.Body.(models.UpdateSmContextRequest), nil, svcmsgtypes.SmfMsgType(svcmsgtypes.UpdateSmContext))
 	txn.CtxtKey = smContextRef
+
+	logger.PduSessLog.Info("db - in HTTPUpdateSmContext StartTxnLifeCycle")
 	go txn.StartTxnLifeCycle(fsm.SmfTxnFsmHandle)
 	<-txn.Status
 	HTTPResponse := txn.Rsp.(*http_wrapper.Response)

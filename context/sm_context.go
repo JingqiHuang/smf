@@ -37,14 +37,13 @@ import (
 	"github.com/omec-project/smf/logger"
 )
 
-
 const (
 	PDU_SESS_REL_CMD string = "PDUSessionReleaseCommand"
 )
 
 var (
-	smContextPool    sync.Map
-	canonicalRef     sync.Map
+	smContextPool sync.Map
+	canonicalRef  sync.Map
 	// should it be stored in DB?
 	seidSMContextMap sync.Map
 )
@@ -93,55 +92,55 @@ type SMContext struct {
 
 	UnauthenticatedSupi bool `json:"unauthenticatedSupi,omitempty" yaml:"unauthenticatedSupi" bson:"unauthenticatedSupi,omitempty"`
 	// SUPI or PEI
-	Supi           string `json:"supi,omitempty" yaml:"supi" bson:"supi,omitempty"`
-	Pei            string `json:"pei,omitempty" yaml:"pei" bson:"pei,omitempty"`
-	Identifier     string `json:"identifier" yaml:"identifier" bson:"identifier"`
-	Gpsi           string `json:"gpsi,omitempty" yaml:"gpsi" bson:"gpsi,omitempty"`
-	PDUSessionID   int32 `json:"pduSessionID" yaml:"pduSessionID" bson:"pduSessionID"`
-	Dnn            string `json:"dnn" yaml:"dnn" bson:"dnn"`
+	Supi           string         `json:"supi,omitempty" yaml:"supi" bson:"supi,omitempty"`
+	Pei            string         `json:"pei,omitempty" yaml:"pei" bson:"pei,omitempty"`
+	Identifier     string         `json:"identifier" yaml:"identifier" bson:"identifier"`
+	Gpsi           string         `json:"gpsi,omitempty" yaml:"gpsi" bson:"gpsi,omitempty"`
+	PDUSessionID   int32          `json:"pduSessionID" yaml:"pduSessionID" bson:"pduSessionID"`
+	Dnn            string         `json:"dnn" yaml:"dnn" bson:"dnn"`
 	Snssai         *models.Snssai `json:"snssai" yaml:"snssai" bson:"snssai"`
 	HplmnSnssai    *models.Snssai `json:"hplmnSnssai,omitempty" yaml:"hplmnSnssai" bson:"hplmnSnssai,omitempty"`
 	ServingNetwork *models.PlmnId `json:"servingNetwork,omitempty" yaml:"servingNetwork" bson:"servingNetwork,omitempty"`
-	ServingNfId    string `json:"servingNfId,omitempty" yaml:"servingNfId" bson:"servingNfId,omitempty"`
+	ServingNfId    string         `json:"servingNfId,omitempty" yaml:"servingNfId" bson:"servingNfId,omitempty"`
 
 	UpCnxState models.UpCnxState `json:"upCnxState,omitempty" yaml:"upCnxState" bson:"upCnxState,omitempty"`
 
-	AnType          models.AccessType `json:"anType" yaml:"anType" bson:"anType"`
-	RatType         models.RatType `json:"ratType,omitempty" yaml:"ratType" bson:"ratType,omitempty"`
+	AnType          models.AccessType    `json:"anType" yaml:"anType" bson:"anType"`
+	RatType         models.RatType       `json:"ratType,omitempty" yaml:"ratType" bson:"ratType,omitempty"`
 	PresenceInLadn  models.PresenceState `json:"presenceInLadn,omitempty" yaml:"presenceInLadn" bson:"presenceInLadn,omitempty"`
 	UeLocation      *models.UserLocation `json:"ueLocation,omitempty" yaml:"ueLocation" bson:"ueLocation,omitempty"`
-	UeTimeZone      string `json:"ueTimeZone,omitempty" yaml:"ueTimeZone" bson:"ueTimeZone,omitempty"`
+	UeTimeZone      string               `json:"ueTimeZone,omitempty" yaml:"ueTimeZone" bson:"ueTimeZone,omitempty"`
 	AddUeLocation   *models.UserLocation `json:"addUeLocation,omitempty" yaml:"addUeLocation" bson:"addUeLocation,omitempty"`
-	OldPduSessionId int32 `json:"oldPduSessionId,omitempty" yaml:"oldPduSessionId" bson:"oldPduSessionId,omitempty"`
-	HoState         models.HoState `json:"hoState,omitempty" yaml:"hoState" bson:"hoState,omitempty"`
+	OldPduSessionId int32                `json:"oldPduSessionId,omitempty" yaml:"oldPduSessionId" bson:"oldPduSessionId,omitempty"`
+	HoState         models.HoState       `json:"hoState,omitempty" yaml:"hoState" bson:"hoState,omitempty"`
 
 	PDUAddress             net.IP `json:"pduAddress,omitempty" yaml:"pduAddress" bson:"pduAddress,omitempty"`
-	SelectedPDUSessionType uint8 `json:"selectedPDUSessionType,omitempty" yaml:"selectedPDUSessionType" bson:"selectedPDUSessionType,omitempty"`
+	SelectedPDUSessionType uint8  `json:"selectedPDUSessionType,omitempty" yaml:"selectedPDUSessionType" bson:"selectedPDUSessionType,omitempty"`
 
 	DnnConfiguration models.DnnConfiguration `json:"dnnConfiguration,omitempty" yaml:"dnnConfiguration" bson:"dnnConfiguration,omitempty"`
 
 	// Client
 	SMPolicyClient      *Npcf_SMPolicyControl.APIClient `json:"smPolicyClient,omitempty" yaml:"smPolicyClient" bson:"smPolicyClient,omitempty"`
-	CommunicationClient *Namf_Communication.APIClient `json:"communicationClient,omitempty" yaml:"communicationClient" bson:"communicationClient,omitempty"`
+	CommunicationClient *Namf_Communication.APIClient   `json:"communicationClient,omitempty" yaml:"communicationClient" bson:"communicationClient,omitempty"`
 
 	AMFProfile         models.NfProfile `json:"amfProfile,omitempty" yaml:"amfProfile" bson:"amfProfile,omitempty"`
 	SelectedPCFProfile models.NfProfile `json:"selectedPCFProfile,omitempty" yaml:"selectedPCFProfile" bson:"selectedPCFProfile,omitempty"`
-	SmStatusNotifyUri  string `json:"smStatusNotifyUri,omitempty" yaml:"smStatusNotifyUri" bson:"smStatusNotifyUri,omitempty"`
+	SmStatusNotifyUri  string           `json:"smStatusNotifyUri,omitempty" yaml:"smStatusNotifyUri" bson:"smStatusNotifyUri,omitempty"`
 
 	SMContextState SMContextState `json:"smContextState" yaml:"smContextState" bson:"smContextState"`
 
 	// encountered a cycle via *context.GTPTunnel
-	Tunnel    *UPTunnel `json:"-" yaml:"tunnel" bson:"-"`
-	
+	Tunnel *UPTunnel `json:"-" yaml:"tunnel" bson:"-"`
+
 	BPManager *BPManager `json:"bpManager,omitempty" yaml:"bpManager" bson:"bpManager,omitempty"`
 	// NodeID(string form) to PFCP Session Context
-	PFCPContext                         map[string]*PFCPSessionContext `json:"pfcpContext" yaml:"pfcpContext" bson:"pfcpContext"`
+	PFCPContext map[string]*PFCPSessionContext `json:"-" yaml:"pfcpContext" bson:"-"`
 	// unsupported structure - madatory!
-	SBIPFCPCommunicationChan            chan PFCPSessionResponseStatus `json:"-" yaml:"sbiPFCPCommunicationChan" bson:"-"`
-	
+	SBIPFCPCommunicationChan chan PFCPSessionResponseStatus `json:"-" yaml:"sbiPFCPCommunicationChan" bson:"-"`
+
 	PendingUPF                          PendingUPF `json:"pendingUPF,omitempty" yaml:"pendingUPF" bson:"pendingUPF,omitempty"`
-	PDUSessionRelease_DUE_TO_DUP_PDU_ID bool `json:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty" yaml:"pduSessionRelease_DUE_TO_DUP_PDU_ID" bson:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty"`
-	LocalPurged                         bool `json:"localPurged,omitempty" yaml:"localPurged" bson:"localPurged,omitempty"`
+	PDUSessionRelease_DUE_TO_DUP_PDU_ID bool       `json:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty" yaml:"pduSessionRelease_DUE_TO_DUP_PDU_ID" bson:"pduSessionRelease_DUE_TO_DUP_PDU_ID,omitempty"`
+	LocalPurged                         bool       `json:"localPurged,omitempty" yaml:"localPurged" bson:"localPurged,omitempty"`
 
 	DNNInfo *SnssaiSmfDnnInfo `json:"dnnInfo,omitempty" yaml:"dnnInfo" bson:"dnnInfo,omitempty"`
 
@@ -171,14 +170,11 @@ type SMContext struct {
 
 	//TxnBus per subscriber
 	TxnBus       transaction.TxnBus `json:"txnBus,omitempty" yaml:"txnBus" bson:"txnBus,omitempty"`
-	SMTxnBusLock sync.Mutex `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
-	
+	SMTxnBusLock sync.Mutex         `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
+
 	// encountered a cycle via *context.SMContext
-	ActiveTxn    *transaction.Transaction `json:"-" yaml:"activeTxn" bson:"-,"`
+	ActiveTxn *transaction.Transaction `json:"-" yaml:"activeTxn" bson:"-,"`
 }
-
-
-
 
 func canonicalName(identifier string, pduSessID int32) (canonical string) {
 	return fmt.Sprintf("%s-%d", identifier, pduSessID)
@@ -225,7 +221,7 @@ func NewSMContext(identifier string, pduSessID int32) (smContext *SMContext) {
 	//initialise log tags
 	smContext.initLogTags()
 
-	fmt.Println("db - in new smcontext smcontext val ", smContext)
+	// fmt.Println("db - in new smcontext smcontext val ", smContext)
 	fmt.Println("db - in new smcontext smcontext val ref", smContext.Ref)
 	StoreSmContextInDB(smContext)
 	return smContext
@@ -283,15 +279,30 @@ func (smContext *SMContext) ChangeState(nextState SMContextState) {
 	smContext.SubCtxLog.Infof("context state change, current state[%v] next state[%v]",
 		smContext.SMContextState.String(), nextState.String())
 	smContext.SMContextState = nextState
+
+	// StoreSmContextInDB(smContext)
 }
 
 //*** add unit test ***//
 func GetSMContext(ref string) (smContext *SMContext) {
-	if value, ok := smContextPool.Load(ref); ok {
-		smContext = value.(*SMContext)
+	fmt.Println("db - in GetSMContext")
+	// if value, ok := smContextPool.Load(ref); ok {
+	// var mem_smContext *SMContext
+	if _, ok := smContextPool.Load(ref); ok {
+		fmt.Println("db - found in GetSMContext using mem val")
+		// mem_smContext = value.(*SMContext)
 	} else {
-		return GetSMContextByRefInDB(ref)
+		fmt.Println("db - found in GetSMContext using GetSMContextByRefInDB")
+		// smContext = GetSMContextByRefInDB(ref)
 	}
+	smContext = GetSMContextByRefInDB(ref)
+	// smContext.ActiveTxn = nil
+	fmt.Println("db - in GetSMContext before return ")
+	// fmt.Println("db - in GetSMContext before return db_smContext = ", db_smContext)
+	// fmt.Println("db - in GetSMContext before return smContext.ActiveTxn = ", smContext.ActiveTxn)
+	// fmt.Println("db - in GetSMContext before return db_smContext.ActiveTxn = ", db_smContext.ActiveTxn)
+	// fmt.Println("db - in GetSMContext before return smContext.Tunnel = ", smContext.Tunnel)
+	// fmt.Println("db - in GetSMContext before return db_smContext.Tunnel = ", db_smContext.Tunnel)
 
 	return
 }
@@ -332,7 +343,7 @@ func GetSMContextBySEID(SEID uint64) (smContext *SMContext) {
 	if value, ok := seidSMContextMap.Load(SEID); ok {
 		smContext = value.(*SMContext)
 	} else {
-		return GetSMContextBySEIDInDB(SEID)
+		smContext = GetSMContextBySEIDInDB(SEID)
 	}
 	return
 }
@@ -353,6 +364,7 @@ func (smContext *SMContext) SetCreateData(createData *models.SmContextCreateData
 	smContext.AddUeLocation = createData.AddUeLocation
 	smContext.OldPduSessionId = createData.OldPduSessionId
 	smContext.ServingNfId = createData.ServingNfId
+	StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) BuildCreatedData() (createdData *models.SmContextCreatedData) {
@@ -417,7 +429,7 @@ func (smContext *SMContext) PCFSelection() error {
 			smContext.SMPolicyClient = Npcf_SMPolicyControl.NewAPIClient(SmPolicyControlConf)
 		}
 	}
-
+	StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -448,6 +460,7 @@ func (smContext *SMContext) AllocateLocalSEIDForUPPath(path UPPath) {
 			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
+	StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
@@ -467,6 +480,7 @@ func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
 			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
+	StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) PutPDRtoPFCPSession(nodeID pfcpType.NodeID, pdrList map[string]*PDR) error {
@@ -479,6 +493,7 @@ func (smContext *SMContext) PutPDRtoPFCPSession(nodeID pfcpType.NodeID, pdrList 
 	} else {
 		return fmt.Errorf("error, can't find PFCPContext[%s] to put PDR(%v)", NodeIDtoIP, pdrList)
 	}
+	StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -486,6 +501,7 @@ func (smContext *SMContext) RemovePDRfromPFCPSession(nodeID pfcpType.NodeID, pdr
 	NodeIDtoIP := nodeID.ResolveNodeIdToIp().String()
 	pfcpSessCtx := smContext.PFCPContext[NodeIDtoIP]
 	delete(pfcpSessCtx.PDRs, pdr.PDRID)
+	StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) isAllowedPDUSessionType(requestedPDUSessionType uint8) error {
@@ -567,6 +583,7 @@ func (smContext *SMContext) isAllowedPDUSessionType(requestedPDUSessionType uint
 	default:
 		return fmt.Errorf("Requested PDU Sesstion type[%d] is not supported", requestedPDUSessionType)
 	}
+	StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -637,7 +654,7 @@ func (smContext *SMContext) GeneratePDUSessionEstablishmentReject(cause string) 
 			},
 		}
 	}
-
+	StoreSmContextInDB(smContext)
 	return httpResponse
 }
 
@@ -655,7 +672,7 @@ func (smContext *SMContext) CommitSmPolicyDecision(status bool) error {
 	if len(smContext.SmPolicyUpdates) >= 1 {
 		smContext.SmPolicyUpdates = smContext.SmPolicyUpdates[1:]
 	}
-
+	StoreSmContextInDB(smContext)
 	//Notify PCF of failure ?
 	//TODO
 	return nil

@@ -278,7 +278,7 @@ func SendNFDiscoveryServingAMF(smContext *smf_context.SMContext) (*models.Proble
 		metrics.IncrementSvcNrfMsgStats(smf_context.SMF_Self().NfInstanceID, string(svcmsgtypes.NnrfNFDiscoveryAmf), "In", "Failure", "NoResponse")
 		return nil, openapi.ReportError("server no response")
 	}
-
+	smf_context.StoreSmContextInDB(smContext)
 	return nil, nil
 }
 

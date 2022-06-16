@@ -29,6 +29,7 @@ import (
 	smf_context "github.com/omec-project/smf/context"
 	"github.com/omec-project/smf/logger"
 	pfcp_message "github.com/omec-project/smf/pfcp/message"
+	// "github.com/r3labs/diff/v3"
 )
 
 func formContextCreateErrRsp(httpStatus int, problemBody *models.ProblemDetails, n1SmMsg *models.RefToBinaryData) *http_wrapper.Response {
@@ -243,7 +244,7 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 		// Use default route
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextCreate, no pre-config route")
 		defaultUPPath := smf_context.GetUserPlaneInformation().GetDefaultUserPlanePathByDNN(upfSelectionParams)
-		
+
 		smContext.SubPduSessLog.Infof("upfSelectionParams %v", upfSelectionParams)
 		smContext.SubPduSessLog.Infof("smf_context.GetUserPlaneInformation() res %v", smf_context.GetUserPlaneInformation())
 		smContext.SubPduSessLog.Infof("defaultUPPath %v", defaultUPPath)
@@ -310,6 +311,7 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 
 	txn := eventData.(*transaction.Transaction)
+	fmt.Println("PDUSessionSMContextUpdate, txn = ", txn)
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 
 	smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, update received")
@@ -440,8 +442,8 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 	}
 	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go!!!")
 	smf_context.StoreSmContextInDB(smContext)
-	tmp_ctx := smf_context.GetSMContextByRefInDB(smContext.Ref)
-	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go tmp_ctx = ", tmp_ctx)
+	// tmp_ctx := smf_context.GetSMContextByRefInDB(smContext.Ref)
+	// fmt.Println("db - StoreContextInDB(smContext) in sm_context.go tmp_ctx = ", tmp_ctx)
 
 	txn.Rsp = httpResponse
 	return nil
@@ -728,6 +730,11 @@ func SendPduSessN1N2Transfer(smContext *smf_context.SMContext, success bool) err
 	smContext.CommitSmPolicyDecision(true)
 	smContext.SubPduSessLog.Infof("N1N2 Transfer completed")
 	smf_context.StoreSmContextInDB(smContext)
+	// tmp_ctx := smf_context.GetSMContextByRefInDB(smContext.Ref)
+	// changelog, _ := diff.Diff(smContext, tmp_ctx)
+	// fmt.Println("N1N2 Transfer customized changelog deepequal... ")
+	// smf_context.CompareSMContext(smContext, tmp_ctx)
+
 	return nil
 }
 

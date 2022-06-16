@@ -1,5 +1,4 @@
-	// db changes
-	
+// db changes
 
 // SPDX-FileCopyrightText: 2021 Open Networking Foundation <info@opennetworking.org>
 // Copyright 2019 free5GC.org
@@ -12,45 +11,53 @@ package context
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/badhrinathpa/MongoDBLibrary"
 	"go.mongodb.org/mongo-driver/bson"
 
+	"github.com/omec-project/pfcp/pfcpType"
 	"github.com/omec-project/smf/logger"
-	"github.com/sirupsen/logrus"
+
 	// "github.com/free5gc/openapi/models"
 
-	"github.com/omec-project/idgenerator"
 	"net"
-	"time"
-	"github.com/omec-project/smf/msgtypes/svcmsgtypes"
-	"strconv"
-	"github.com/omec-project/smf/transaction"
 	"reflect"
+	"strconv"
+	"time"
 
+	"github.com/omec-project/idgenerator"
 )
 
 const (
-	SmContextDataColl = "smf.data.smContext"
+	SmContextDataColl  = "smf.data.smContext"
 	TransactionDataCol = "smf.data.transaction"
-	SeidSmContextCol = "smf.data.seidSmContext"
-	NodeInDBCol = "smf.data.nodeInDB"
+	SeidSmContextCol   = "smf.data.seidSmContext"
+	NodeInDBCol        = "smf.data.nodeInDB"
+	SMPolicyClientCol  = "smf.data.smPolicyClient"
 )
+
+type Change struct {
+	Type string      // The type of change detected; can be one of create, update or delete
+	Path []string    // The path of the detected change; will contain any field name or array index that was part of the traversal
+	From interface{} // The original value that was present in the "from" structure
+	To   interface{} // The new value that was detected as a change in the "to" structure
+}
 
 // Transaction
 type TransactionInDB struct {
 	startTime time.Time
-	endTime time.Time
-	TxnId              uint32
-	Priority           uint32
-	Req                interface{}
-	Rsp                interface{}
-	CtxtRef             string
+	endTime   time.Time
+	TxnId     uint32
+	Priority  uint32
+	Req       interface{}
+	Rsp       interface{}
+	CtxtRef   string
 	// MsgType            svcmsgtypes.SmfMsgType
-	MsgType				string
-	CtxtKey            string
-	Err                error
+	MsgType string
+	CtxtKey string
+	Err     error
 	// Status             chan bool
-	NextTxnId          uint32
+	NextTxnId uint32
 	// TxnFsmLog          *logrus.Entry
 }
 
@@ -61,7 +68,6 @@ func (t *TransactionInDB) StartTime() time.Time {
 func (t *TransactionInDB) EndTime() time.Time {
 	return t.endTime
 }
-
 
 // type DataPathPoolInDB map[int64]DataPathInDB
 type DataPathPoolInDB map[int64]*DataPathInDB
@@ -76,7 +82,6 @@ type UPTunnelInDB struct {
 	}
 }
 
-
 type DataPathInDB struct {
 	// meta data
 	Activated         bool
@@ -88,19 +93,19 @@ type DataPathInDB struct {
 	// FirstDPNode *DataPathNodeInDB
 }
 
-type DataPathNodeInDB  struct {
-    // UPF *UPF
-	DataPathNodeUPFNodeID NodeIDInDB 
-
-	ULTunnelInfo	*TunnelInfo
-	DLTunnelInfo	*TunnelInfo
-
-    IsBranchingPoint bool
-}
-type TunnelInfo struct{
+type DataPathNodeInDB struct {
+	// UPF *UPF
 	DataPathNodeUPFNodeID NodeIDInDB
-	TEID uint32
-	PDR  map[string]*PDR
+
+	ULTunnelInfo *TunnelInfo
+	DLTunnelInfo *TunnelInfo
+
+	IsBranchingPoint bool
+}
+type TunnelInfo struct {
+	DataPathNodeUPFNodeID NodeIDInDB
+	TEID                  uint32
+	PDR                   map[string]*PDR
 }
 
 type NodeIDInDB struct {
@@ -108,72 +113,76 @@ type NodeIDInDB struct {
 	NodeIdValue []byte
 }
 
+type PFCPSessionContextInDB struct {
+	PDRs       map[uint16]*PDR
+	NodeID     pfcpType.NodeID
+	LocalSEID  string
+	RemoteSEID string
+}
+
 func SetupSmfCollection() {
 	fmt.Println("db - SetupSmfCollection!!")
+	// MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
+	// _, err := MongoDBLibrary.CreateIndex(SmContextDataColl, "supi")
+	// if err != nil {
+	// 	logger.CtxLog.Errorf("Create index failed on Supi field.")
+	// }
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err := MongoDBLibrary.CreateIndex(SmContextDataColl, "supi")
-	if err != nil {
-		logger.CtxLog.Errorf("Create index failed on Supi field.")
-	}
-	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
-	_, err = MongoDBLibrary.CreateIndex(SmContextDataColl, "ref")
+	_, err := MongoDBLibrary.CreateIndex(SmContextDataColl, "ref")
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on ref field.")
 	}
-	
+
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
 	_, err = MongoDBLibrary.CreateIndex(TransactionDataCol, "txnId")
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on TxnId field.")
 	}
-	
+
 	MongoDBLibrary.SetMongoDB("sdcore", "mongodb://mongodb")
 	_, err = MongoDBLibrary.CreateIndex(SeidSmContextCol, "seid")
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on TxnId field.")
 	}
-	testDB()
-	
+	// testDB()
+
 }
 
+type PFCPContextInDB map[string]PFCPSessionContextInDB
 
 func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	type Alias SMContext
 	// UPTunnel: GTPTunnel -> TEID
-	fmt.Println("db - in customized MarshalJSON ")
-	var msgTypeVal string
-	
-	var activeTxnVal TransactionInDB
-	if smContext.ActiveTxn != nil {
-		msgTypeVal = svcmsgtypes.SmfMsgTypeString(smContext.ActiveTxn.MsgType)
-		fmt.Println("db - in customized MarshalJSON ", msgTypeVal)
-		activeTxnVal.startTime =  smContext.ActiveTxn.StartTime()
-		activeTxnVal.endTime = smContext.ActiveTxn.EndTime()
-		activeTxnVal.TxnId = smContext.ActiveTxn.TxnId
-		activeTxnVal.Priority= smContext.ActiveTxn.Priority
-		activeTxnVal.Req = smContext.ActiveTxn.Req
-		activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
-		activeTxnVal.MsgType= msgTypeVal
-		activeTxnVal.CtxtKey= smContext.ActiveTxn.CtxtKey
-		activeTxnVal.Err= smContext.ActiveTxn.Err
-		//  ---- why bug
-		fmt.Println("db - in MarshalJSON check req %v %v ", smContext.ActiveTxn.Req, (smContext.ActiveTxn.Req != nil))
-		fmt.Println("db - in MarshalJSON check rsp %v %v ", smContext.ActiveTxn.Rsp, (smContext.ActiveTxn.Rsp != nil))
-		fmt.Println("db - in MarshalJSON check CtxtRef ", (smContext.ActiveTxn.Ctxt.(*SMContext).Ref))
-		if smContext.ActiveTxn.NextTxn != nil {
-			activeTxnVal.NextTxnId = smContext.ActiveTxn.NextTxn.TxnId
-		}
-		if smContext.ActiveTxn.Ctxt != nil {
-			activeTxnVal.CtxtRef = smContext.ActiveTxn.Ctxt.(*SMContext).Ref
-		}
-		StoreTxnInDB(&activeTxnVal)
-	} 
+	// fmt.Println("db - in customized MarshalJSON ")
 
-	fmt.Println("db - in MarshalJSON after activeTxnVal")
-	
-	
-	
-	dataPathPoolInDBVal:= make(map[int64]*DataPathInDB)
+	/*
+		var msgTypeVal string
+
+		var activeTxnVal TransactionInDB
+		if smContext.ActiveTxn != nil {
+			msgTypeVal = svcmsgtypes.SmfMsgTypeString(smContext.ActiveTxn.MsgType)
+			fmt.Println("db - in customized MarshalJSON ", msgTypeVal)
+			activeTxnVal.startTime = smContext.ActiveTxn.StartTime()
+			activeTxnVal.endTime = smContext.ActiveTxn.EndTime()
+			activeTxnVal.TxnId = smContext.ActiveTxn.TxnId
+			activeTxnVal.Priority = smContext.ActiveTxn.Priority
+			activeTxnVal.Req = smContext.ActiveTxn.Req
+			activeTxnVal.Rsp = smContext.ActiveTxn.Rsp
+			activeTxnVal.MsgType = msgTypeVal
+			activeTxnVal.CtxtKey = smContext.ActiveTxn.CtxtKey
+			activeTxnVal.Err = smContext.ActiveTxn.Err
+			if smContext.ActiveTxn.NextTxn != nil {
+				activeTxnVal.NextTxnId = smContext.ActiveTxn.NextTxn.TxnId
+			}
+			if smContext.ActiveTxn.Ctxt != nil {
+				activeTxnVal.CtxtRef = smContext.ActiveTxn.Ctxt.(*SMContext).Ref
+			}
+			StoreTxnInDB(&activeTxnVal)
+		}*/
+
+	// fmt.Println("db - in MarshalJSON after activeTxnVal")
+
+	dataPathPoolInDBVal := make(map[int64]*DataPathInDB)
 
 	var dataPathInDBIf interface{}
 	var FirstDPNodeIf interface{}
@@ -183,47 +192,60 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 		upTunnelVal.ANInformation = smContext.Tunnel.ANInformation
 
 		if smContext.Tunnel.DataPathPool != nil {
-			fmt.Println("db - smContext.Tunnel.DataPathPool len ",len(smContext.Tunnel.DataPathPool)) 
+			// fmt.Println("db - smContext.Tunnel.DataPathPool len ",len(smContext.Tunnel.DataPathPool))
 			for key, val := range smContext.Tunnel.DataPathPool {
 
 				dataPathInDBIf = val
 				dataPath := dataPathInDBIf.(*DataPath)
-				
+
 				firstDPNode := dataPath.FirstDPNode
 				FirstDPNodeIf = firstDPNode
 
 				dataPathNode := FirstDPNodeIf.(*DataPathNode)
 				// fmt.Println("db - in MarshalJSON dataPathNode from dataPath.FirstDPNode %v", dataPathNode)
 				// fmt.Println("db - in MarshalJSON dataPath %v", dataPath)
-				// convert dataPathNode to DataPathNodeInDB 
+				// convert dataPathNode to DataPathNodeInDB
 				dataPathNodeInDBVal := StoreDataPathNode(dataPathNode)
 				// dataPathNodeInDBVal := &DataPathNodeInDB{}
 
-				fmt.Println("db - in MarshalJSON dataPathNodeInDBVal %v", dataPathNodeInDBVal)
-				
+				// fmt.Println("db - in MarshalJSON dataPathNodeInDBVal %v", dataPathNodeInDBVal)
+
 				newDataPathInDB := &DataPathInDB{
-					Activated: dataPath.Activated,
-					IsDefaultPath: dataPath.IsDefaultPath,
-					Destination: dataPath.Destination,
+					Activated:         dataPath.Activated,
+					IsDefaultPath:     dataPath.IsDefaultPath,
+					Destination:       dataPath.Destination,
 					HasBranchingPoint: dataPath.HasBranchingPoint,
-					FirstDPNode: dataPathNodeInDBVal,
+					FirstDPNode:       dataPathNodeInDBVal,
 				}
-				
+
 				dataPathPoolInDBVal[key] = newDataPathInDB
 			}
 			upTunnelVal.DataPathPool = dataPathPoolInDBVal
 		}
 	}
-	
-	fmt.Println("db - in MarshalJSON before return")
-	
+
+	var pfcpSessionContextInDB PFCPSessionContextInDB
+	PFCPContextVal := make(PFCPContextInDB)
+	// store localseid and remoteseid
+	for key, pfcpCtx := range smContext.PFCPContext {
+		pfcpSessionContextInDB.NodeID = pfcpCtx.NodeID
+		pfcpSessionContextInDB.PDRs = pfcpCtx.PDRs
+		pfcpSessionContextInDB.LocalSEID = strconv.FormatUint(pfcpCtx.LocalSEID, 10)
+		pfcpSessionContextInDB.RemoteSEID = strconv.FormatUint(pfcpCtx.RemoteSEID, 10)
+		PFCPContextVal[key] = pfcpSessionContextInDB
+	}
+
+	// fmt.Println("db - in MarshalJSON before return")
+	// fmt.Println("db - in MarshalJSON smContext ", smContext)
 	return json.Marshal(&struct {
-		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		Tunnel	UPTunnelInDB	`json:"tunnel"`
+		// ActiveTxn   TransactionInDB `json:"activeTxn"`
+		Tunnel      UPTunnelInDB    `json:"tunnel"`
+		PFCPContext PFCPContextInDB `json:"pfcpContext"`
 		*Alias
 	}{
-		ActiveTxn: activeTxnVal,
-		Tunnel: upTunnelVal,
+		// ActiveTxn:   activeTxnVal,
+		Tunnel:      upTunnelVal,
+		PFCPContext: PFCPContextVal,
 		Alias:       (*Alias)(smContext),
 	})
 }
@@ -232,8 +254,9 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 	fmt.Println("db - in UnmarshalJSON")
 	type Alias SMContext
 	aux := &struct {
-		ActiveTxn	TransactionInDB	`json:"activeTxn"`
-		Tunnel	UPTunnelInDB	`json:"tunnel"`
+		// ActiveTxn      TransactionInDB `json:"activeTxn"`
+		Tunnel         UPTunnelInDB    `json:"tunnel"`
+		PFCPContextVal PFCPContextInDB `json:"pfcpContext"`
 		*Alias
 	}{
 		Alias: (*Alias)(smContext),
@@ -243,28 +266,37 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		fmt.Println("Err in customized unMarshall!!")
 		return err
 	}
-	
-	smContext.ActiveTxn = &transaction.Transaction{}
-	// recover ActiveTxn
-	smContext.ActiveTxn.SetStartTime(aux.ActiveTxn.StartTime())
-	smContext.ActiveTxn.SetEndTime(aux.ActiveTxn.EndTime())
-	smContext.ActiveTxn.TxnId = aux.ActiveTxn.TxnId
-	smContext.ActiveTxn.Priority = aux.ActiveTxn.Priority
-	smContext.ActiveTxn.Req = aux.ActiveTxn.Req
-	smContext.ActiveTxn.Rsp = aux.ActiveTxn.Rsp
-	smContext.ActiveTxn.Ctxt = GetSMContext(aux.ActiveTxn.CtxtKey)
-	smContext.ActiveTxn.MsgType = svcmsgtypes.SmfMsgTypeType(aux.ActiveTxn.MsgType)
-	smContext.ActiveTxn.CtxtKey = aux.ActiveTxn.CtxtKey
-	smContext.ActiveTxn.Err = aux.ActiveTxn.Err
-	fmt.Println("db - after Unmarshal in customized unMarshall finished recovered ActiveTxn %v", smContext.ActiveTxn)
-	subField := logrus.Fields{"txnid": smContext.ActiveTxn.TxnId, "txntype": string(smContext.ActiveTxn.MsgType), "ctxtkey": smContext.ActiveTxn.CtxtKey}
-	smContext.ActiveTxn.TxnFsmLog = logger.TxnFsmLog.WithFields(subField)
 
-	smContext.ActiveTxn.Status = make(chan bool)
-	// TODO: need to retrieve next txn in db
-	// smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
-	
-	fmt.Println("db - after Unmarshal in customized unMarshall start recover Tunnel %v", aux.Tunnel)
+	// recover smContext.PFCPContext
+	smContext.PFCPContext = make(map[string]*PFCPSessionContext)
+	for key, pfcpCtxInDB := range aux.PFCPContextVal {
+		smContext.PFCPContext[key] = &PFCPSessionContext{}
+		smContext.PFCPContext[key].NodeID = pfcpCtxInDB.NodeID
+		smContext.PFCPContext[key].PDRs = pfcpCtxInDB.PDRs
+		smContext.PFCPContext[key].LocalSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.LocalSEID), 10, 64)
+		smContext.PFCPContext[key].RemoteSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.RemoteSEID), 10, 64)
+	}
+	/*
+		smContext.ActiveTxn = &transaction.Transaction{}
+		// recover ActiveTxn
+		smContext.ActiveTxn.SetStartTime(aux.ActiveTxn.StartTime())
+		smContext.ActiveTxn.SetEndTime(aux.ActiveTxn.EndTime())
+		smContext.ActiveTxn.TxnId = aux.ActiveTxn.TxnId
+		smContext.ActiveTxn.Priority = aux.ActiveTxn.Priority
+		smContext.ActiveTxn.Req = aux.ActiveTxn.Req
+		smContext.ActiveTxn.Rsp = aux.ActiveTxn.Rsp
+		smContext.ActiveTxn.MsgType = svcmsgtypes.SmfMsgTypeType(aux.ActiveTxn.MsgType)
+		smContext.ActiveTxn.CtxtKey = aux.ActiveTxn.CtxtKey
+		smContext.ActiveTxn.Err = aux.ActiveTxn.Err
+		// fmt.Println("db - after Unmarshal in customized unMarshall finished recovered ActiveTxn %v", smContext.ActiveTxn)
+		subField := logrus.Fields{"txnid": smContext.ActiveTxn.TxnId, "txntype": string(smContext.ActiveTxn.MsgType), "ctxtkey": smContext.ActiveTxn.CtxtKey}
+		smContext.ActiveTxn.TxnFsmLog = logger.TxnFsmLog.WithFields(subField)
+		smContext.ActiveTxn.Status = make(chan bool)
+		// TODO: need to retrieve next txn in db
+		// smContext.ActiveTxn.NextTxnId = &aux.ActiveTxn.NextTxnId
+		smContext.ActiveTxn.NextTxn = nil
+	*/
+	// fmt.Println("db - after Unmarshal in customized unMarshall start recover Tunnel %v", aux.Tunnel)
 	var dataPathInDBIf interface{}
 	var FirstDPNodeIf interface{}
 	var nilVal *UPTunnelInDB = nil
@@ -277,39 +309,42 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		for key, val := range aux.Tunnel.DataPathPool {
 			dataPathInDBIf = val
 			dataPathInDB := dataPathInDBIf.(*DataPathInDB)
-			fmt.Println("dataPathInDB - dataPathInDBIf %v", *dataPathInDB)
-			fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode %v", *dataPathInDB.FirstDPNode)
-			fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID %v", dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID)
+			// fmt.Println("dataPathInDB - dataPathInDBIf %v", *dataPathInDB)
+			// fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode %v", *dataPathInDB.FirstDPNode)
+			// fmt.Println("dataPathInDB - dataPathInDBIf dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID %v", dataPathInDB.FirstDPNode.DataPathNodeUPFNodeID)
 			firstDPNode := dataPathInDB.FirstDPNode
 			FirstDPNodeIf = firstDPNode
 			dataPathNodeInDBVal := FirstDPNodeIf.(*DataPathNodeInDB)
 			dataPathNodeVal := RecoverDataPathNode(dataPathNodeInDBVal)
-			fmt.Println("dataPathInDB - dataPathNodeVal after RecoverDataPathNode %v", dataPathNodeVal)
-			
+			// fmt.Println("dataPathInDB - dataPathNodeVal after RecoverDataPathNode %v", dataPathNodeVal)
+
 			newDataPath := NewDataPath()
-			
-			newDataPath.Activated =  dataPathInDB.Activated
+
+			newDataPath.Activated = dataPathInDB.Activated
 			newDataPath.IsDefaultPath = dataPathInDB.IsDefaultPath
 			newDataPath.Destination = dataPathInDB.Destination
 			newDataPath.HasBranchingPoint = dataPathInDB.HasBranchingPoint
-			
+
 			newDataPath.FirstDPNode = dataPathNodeVal
 
 			smContext.Tunnel.DataPathPool[key] = newDataPath
-			
-			fmt.Println("dataPathInDB - newDataPath after smContext.Tunnel.DataPathPool[key] %v", newDataPath)
+
+			// fmt.Println("dataPathInDB - newDataPath after smContext.Tunnel.DataPathPool[key] %v", newDataPath)
 		}
-		
-		fmt.Println("smContext.Tunnel.DataPathPool %v", smContext.Tunnel.DataPathPool)
-	}	
-	fmt.Println("db - after Unmarshal in customized unMarshall after recover Tunnel %v", smContext.Tunnel)
-	fmt.Println("db - in UnMarshalJSON before return")
-	
+
+		// fmt.Println("smContext.Tunnel.DataPathPool %v", smContext.Tunnel.DataPathPool)
+	}
+	// recover logs
+	smContext.initLogTags()
+	// recover SBIPFCPCommunicationChan
+	smContext.SBIPFCPCommunicationChan = make(chan PFCPSessionResponseStatus, 1)
+	// smContext.ActiveTxn.Ctxt = smContext
+	// smContext.ActiveTxn.CtxtKey = smContext.Ref
+
+	// fmt.Println("db - after Unmarshal in customized unMarshall after recover Tunnel %v", smContext.Tunnel)
+
 	return nil
 }
-
-
-
 
 func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 
@@ -318,7 +353,7 @@ func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 	if err != nil {
 		logger.CtxLog.Errorf("SMContext marshall error: %v", err)
 	}
-	
+
 	// unmarshal data into bson format
 	err = json.Unmarshal(tmp, &ret)
 	if err != nil {
@@ -329,17 +364,18 @@ func ToBsonMSeidRef(data SeidSmContextRef) (ret bson.M) {
 }
 
 func ToBsonM(data *SMContext) (ret bson.M) {
-	
+
 	// Marshal data into json format
 	fmt.Println("db - in ToBsonM before marshal")
 	tmp, err := json.Marshal(data)
 	if err != nil {
 		logger.CtxLog.Errorf("SMContext marshall error: %v", err)
 	}
-
 	// unmarshal data into bson format
-	fmt.Println("db - in ToBsonM before Unmarshal")
+
+	// fmt.Println("db - in ToBsonM after json marshal = ", tmp)
 	err = json.Unmarshal(tmp, &ret)
+	// fmt.Println("db - in ToBsonM after json unmarshal = ", &ret)
 	if err != nil {
 		logger.CtxLog.Errorf("SMContext unmarshall error: %v", err)
 	}
@@ -349,23 +385,29 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 
 func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
+	// fmt.Println("db - in StoreSmContextInDB before ToBsonM smcontext.SMPolicyClient = ", smContext.SMPolicyClient)
 	smContextBsonA := ToBsonM(smContext)
-	fmt.Println("db - in StoreSmContextInDB after ToBsonM")
+	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContext.SMPolicyClient = ", smContext.SMPolicyClient)
 	filter := bson.M{"ref": smContext.Ref}
 	logger.CtxLog.Infof("filter: ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
+	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA from db = ", smContextBsonA)
+
+	// result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
+	// fmt.Println("db - in StoreSmContextInDB after ToBsonM res from db = ", result)
+
 }
 
 type SeidSmContextRef struct {
-	Ref string `json:"ref" yaml:"ref" bson:"ref"`
+	Ref  string `json:"ref" yaml:"ref" bson:"ref"`
 	Seid uint64 `json:"seid" yaml:"seid" bson:"seid"`
 }
 
 func StoreSeidContextInDB(seid uint64, smContext *SMContext) {
-	fmt.Println("db - StoreSeidContextInDB In DB!! smcontext ", smContext)
+
 	item := SeidSmContextRef{
-		Ref: smContext.Ref,
+		Ref:  smContext.Ref,
 		Seid: seid,
 	}
 	itemBsonA := ToBsonMSeidRef(item)
@@ -376,17 +418,18 @@ func StoreSeidContextInDB(seid uint64, smContext *SMContext) {
 	fmt.Println("db - finished StoreSeidContextInDB In DB!!")
 }
 
-func GetSMContextByRefInDB(ref string) (smContext *SMContext){
+func GetSMContextByRefInDB(ref string) (smContext *SMContext) {
+	fmt.Println("db - in GetSMContextByRefInDB")
 	smContext = &SMContext{}
 	filter := bson.M{}
 	filter["ref"] = ref
 
 	result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
 
-	fmt.Println("GetSMContextByRefInDB, smf state json : %v", result)
+	// fmt.Println("GetSMContextByRefInDB, smf state json : %v", result)
 	// TBA Return SM context, reconstruct SM context from DB json
 	err := json.Unmarshal(mapToByte(result), smContext)
-	fmt.Println("GetSMContextByRefInDB, after Unmarshal : %v", smContext)
+	// fmt.Println("GetSMContextByRefInDB, after Unmarshal : %v", smContext)
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
@@ -394,14 +437,14 @@ func GetSMContextByRefInDB(ref string) (smContext *SMContext){
 		logger.CtxLog.Errorf("smContext unmarshall error: %v", err)
 		return nil
 	}
-	
+	// fmt.Println("GetSMContextByRefInDB, before return : %v", smContext)
 	return smContext
 }
 
-func GetSMContextBySEIDInDB(seid uint64) (smContext *SMContext){
+func GetSMContextBySEIDInDB(seid uint64) (smContext *SMContext) {
 	filter := bson.M{}
 	filter["seid"] = seid
-	
+
 	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
 	ref := result["ref"].(string)
 	fmt.Println("StoreSeidContextInDB, result string : ", ref)
@@ -415,7 +458,7 @@ func DeleteContextInDBBySEID(seid uint64) {
 	// smContextBsonA := ToBsonM(smContext)
 	filter := bson.M{"seid": seid}
 	logger.CtxLog.Infof("filter : ", filter)
-	
+
 	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
 	seidStr := strconv.FormatInt(int64(seid), 10)
 	ref := result[seidStr].(string)
@@ -432,24 +475,126 @@ func DeleteContextInDBByRef(ref string) {
 	// smContextBsonA := ToBsonM(smContext)
 	filter := bson.M{"ref": ref}
 	logger.CtxLog.Infof("filter : ", filter)
-
 	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)
 	fmt.Println("db - finished delete SMContext In DB!!")
 }
 
 func mapToByte(data map[string]interface{}) (ret []byte) {
-	fmt.Println("db - in mapToByte!! data: %v", data)
+	// fmt.Println("db - in mapToByte!! data: %v", data)
 	ret, _ = json.Marshal(data)
 	// fmt.Println("db - in mapToByte!! ret: %v", ret)
-	return 
+	return
 }
 
-func testDB(){
-	filter := bson.M{}
-	filter["txnID"] = -1
+// func testDB() {
+// 	filter := bson.M{}
+// 	filter["txnID"] = -1
 
-	result := MongoDBLibrary.RestfulAPIGetOne(TransactionDataCol, filter)
+// 	result := MongoDBLibrary.RestfulAPIGetOne(TransactionDataCol, filter)
 
-	print("in db - testdb() result ", result)
-	print("in db - testdb() result type ", reflect.TypeOf(result))
+// 	print("in db - testdb() result ", result)
+// 	print("in db - testdb() result type ", reflect.TypeOf(result))
+// }
+
+func CompareSMContext(sourceSMCtxt *SMContext, destSMCtxt *SMContext) {
+
+	res1 := reflect.DeepEqual(sourceSMCtxt.Ref, destSMCtxt.Ref)
+	if res1 {
+		fmt.Println("two Ref fields are equal")
+	} else {
+		fmt.Println("two Ref fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.Ref)
+		fmt.Println("destSMCtxt values", destSMCtxt.Ref)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.PDUAddress, destSMCtxt.PDUAddress)
+	if res1 {
+		fmt.Println("two PDUAddress fields are equal")
+	} else {
+		fmt.Println("two PDUAddress fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.PDUAddress)
+		fmt.Println("destSMCtxt values", destSMCtxt.PDUAddress)
+		fmt.Println("sourceSMCtxt byte values %v", []byte(sourceSMCtxt.PDUAddress))
+		fmt.Println("destSMCtxt byte values %v", []byte(destSMCtxt.PDUAddress))
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.SMPolicyClient, destSMCtxt.SMPolicyClient)
+	if res1 {
+		fmt.Println("two SMPolicyClient fields are equal")
+	} else {
+		fmt.Println("two SMPolicyClient fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.SMPolicyClient)
+		fmt.Println("destSMCtxt values", destSMCtxt.SMPolicyClient)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.CommunicationClient, destSMCtxt.CommunicationClient)
+	if res1 {
+		fmt.Println("two  CommunicationClient fields are equal")
+	} else {
+		fmt.Println("two CommunicationClient fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.CommunicationClient)
+		fmt.Println("destSMCtxt values", destSMCtxt.CommunicationClient)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.Tunnel.DataPathPool, destSMCtxt.Tunnel.DataPathPool)
+	if res1 {
+		fmt.Println("two Tunnel.DataPathPool fields are equal")
+	} else {
+		fmt.Println("two Tunnel.DataPathPool fields are not equal")
+		fmt.Println("sourceSMCtxt values ", sourceSMCtxt.Tunnel.DataPathPool)
+		fmt.Println("destSMCtxt values ", destSMCtxt.Tunnel.DataPathPool)
+		// fmt.Println("sourceSMCtxt values [1]", sourceSMCtxt.Tunnel.DataPathPool[1])
+		// fmt.Println("destSMCtxt values [1]", destSMCtxt.Tunnel.DataPathPool[1])
+		// fmt.Println("sourceSMCtxt ipv4 len", len(sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address))
+		// fmt.Println("destSMCtxt ipv4 len", len(sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address))
+		// fmt.Println("sourceSMCtxt test", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address[0])
+		// fmt.Println("destSMCtxt test", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address[0])
+		// // fmt.Println("sourceSMCtxt test", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address[10])
+		// // fmt.Println("destSMCtxt test", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address[10])
+		// fmt.Printf("sourceSMCtxt test byte mystr:\t %v \n", []byte(sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address))
+		// fmt.Printf("destSMCtxt test byte mystr:\t %v \n", []byte(destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.UpLinkTunnel.PDR["ALLOW-ALL"].PDI.UEIPAddress.Ipv4Address))
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.PFCPContext, destSMCtxt.PFCPContext)
+	if res1 {
+		fmt.Println("two PFCPContext fields are equal")
+	} else {
+		fmt.Println("two PFCPContext fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.PFCPContext)
+		fmt.Println("destSMCtxt values", destSMCtxt.PFCPContext)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.UeLocation, destSMCtxt.UeLocation)
+	if res1 {
+		fmt.Println("two UeLocation fields are equal")
+	} else {
+		fmt.Println("two UeLocation fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.UeLocation)
+		fmt.Println("destSMCtxt values", destSMCtxt.UeLocation)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.BPManager, destSMCtxt.BPManager)
+	if res1 {
+		fmt.Println("two BPManager fields are equal")
+	} else {
+		fmt.Println("two BPManager fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.BPManager)
+		fmt.Println("destSMCtxt values", destSMCtxt.BPManager)
+	}
+	res1 = reflect.DeepEqual(sourceSMCtxt.ActiveTxn, destSMCtxt.ActiveTxn)
+	if res1 {
+		fmt.Println("two ActiveTxn fields are equal")
+	} else {
+		fmt.Println("two ActiveTxn fields are not equal")
+		fmt.Println("sourceSMCtxt values", sourceSMCtxt.ActiveTxn)
+		fmt.Println("destSMCtxt values", destSMCtxt.ActiveTxn)
+	}
+	// res1 = reflect.DeepEqual(sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint, destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint)
+	// if res1 {
+	// 	fmt.Println("two DestEndPoint fields are equal")
+	// } else {
+	// 	fmt.Println("two FirstDPNode.DownLinkTunnel.DestEndPoint fields are not equal")
+	// 	fmt.Println("sourceSMCtxt values", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint)
+	// 	fmt.Println("destSMCtxt values", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint)
+	// 	fmt.Println("sourceSMCtxt values str %v", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint)
+	// 	fmt.Println("destSMCtxt values str %v", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint)
+	// 	fmt.Println("sourceSMCtxt values ul %v", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint.UpLinkTunnel)
+	// 	fmt.Println("destSMCtxt values ul %v", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint.UpLinkTunnel)
+	// 	fmt.Println("sourceSMCtxt values dl %v", sourceSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint.DownLinkTunnel)
+	// 	fmt.Println("destSMCtxt values dl %v", destSMCtxt.Tunnel.DataPathPool[1].FirstDPNode.DownLinkTunnel.DestEndPoint.DownLinkTunnel)
+	// }
+
 }

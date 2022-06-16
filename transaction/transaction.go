@@ -29,7 +29,6 @@ type Transaction struct {
 	TxnFsmLog          *logrus.Entry
 }
 
-
 func (t *Transaction) StartTime() time.Time {
 	return t.startTime
 }
@@ -38,14 +37,13 @@ func (t *Transaction) EndTime() time.Time {
 	return t.endTime
 }
 
-func (t *Transaction) SetStartTime(ti time.Time ) {
+func (t *Transaction) SetStartTime(ti time.Time) {
 	t.startTime = ti
 }
 
-func (t *Transaction) SetEndTime(ti time.Time ) {
+func (t *Transaction) SetEndTime(ti time.Time) {
 	t.endTime = ti
 }
-
 
 func (t *Transaction) initLogTags() {
 	subField := logrus.Fields{"txnid": t.TxnId,
@@ -195,9 +193,11 @@ func (t *Transaction) StartTxnLifeCycle(fsm txnFsm) {
 	nextEvent := TxnEventInit
 	var err error
 
+	fmt.Println("db - in StartTxnLifeCycle ")
 	for {
 		currEvent := nextEvent
 		t.TxnFsmLog.Debugf("processing event[%v] ", currEvent.String())
+		fmt.Println("db - in StartTxnLifeCycle processing event[%v] ", currEvent.String())
 		if nextEvent, err = TxnFsmHandler[currEvent](t); err != nil {
 			t.TxnFsmLog.Errorf("TxnFsm Error, Stage[%s] Err[%v] ", currEvent.String(), err.Error())
 		}

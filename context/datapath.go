@@ -253,6 +253,7 @@ func (node *DataPathNode) DeactivateUpLinkTunnel(smContext *SMContext) {
 	teid := node.DownLinkTunnel.TEID
 	node.UPF.teidGenerator.FreeID(int64(teid))
 	node.DownLinkTunnel = &GTPTunnel{}
+	StoreSmContextInDB(smContext)
 }
 
 func (node *DataPathNode) DeactivateDownLinkTunnel(smContext *SMContext) {
@@ -384,7 +385,6 @@ func (dataPath *DataPath) String() string {
 
 func (dataPath *DataPath) validateDataPathUpfStatus() error {
 	firstDPNode := dataPath.FirstDPNode
-	logger.PduSessLog.Infof("db - in validateDataPathUpfStatus dataPath.FirstDPNode %v", dataPath.FirstDPNode)
 	for curDataPathNode := firstDPNode; curDataPathNode != nil; curDataPathNode = curDataPathNode.Next() {
 		logger.PduSessLog.Infof("Nodes in Data Path [%v] and status [%v]",
 			curDataPathNode.UPF.NodeID.ResolveNodeIdToIp().String(), curDataPathNode.UPF.UPFStatus.String())
