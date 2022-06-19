@@ -6,6 +6,7 @@
 package producer
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/omec-project/http_wrapper"
@@ -127,7 +128,7 @@ func HandleUpCnxState(txn *transaction.Transaction, response *models.UpdateSmCon
 	body := txn.Req.(models.UpdateSmContextRequest)
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 	smContextUpdateData := body.JsonData
-
+	fmt.Println("db -  in HandleUpCnxState smContextUpdateData.UpCnxState", smContextUpdateData.UpCnxState)
 	switch smContextUpdateData.UpCnxState {
 	case models.UpCnxState_ACTIVATING:
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, UP cnx state %v received", smContextUpdateData.UpCnxState)
@@ -168,7 +169,9 @@ func HandleUpCnxState(txn *transaction.Transaction, response *models.UpdateSmCon
 			smContext.PendingUPF = make(smf_context.PendingUPF)
 			for _, dataPath := range smContext.Tunnel.DataPathPool {
 				ANUPF := dataPath.FirstDPNode
+				fmt.Println("db -  in HandleUpCnxState dataPath.FirstDPNode.DownLinkTunnel", dataPath.FirstDPNode.DownLinkTunnel)
 				for _, DLPDR := range ANUPF.DownLinkTunnel.PDR {
+					fmt.Println("db -  in HandleUpCnxState DLPDR", DLPDR)
 					if DLPDR == nil {
 						smContext.SubPduSessLog.Errorf("AN Release Error")
 					} else {
@@ -320,6 +323,7 @@ func HandleUpdateN2Msg(txn *transaction.Transaction, response *models.UpdateSmCo
 	smContextUpdateData := body.JsonData
 	tunnel := smContext.Tunnel
 
+	fmt.Println("db - in HandleUpdateN2Msg ", smContextUpdateData.N2SmInfoType)
 	switch smContextUpdateData.N2SmInfoType {
 	case models.N2SmInfoType_PDU_RES_SETUP_RSP:
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, N2 SM info type %v received",
@@ -338,6 +342,7 @@ func HandleUpdateN2Msg(txn *transaction.Transaction, response *models.UpdateSmCo
 		smContext.PendingUPF = make(smf_context.PendingUPF)
 		for _, dataPath := range tunnel.DataPathPool {
 			if dataPath.Activated {
+				fmt.Println("db - in HandleUpdateN2Msg dataPath.FirstDPNode ", dataPath.FirstDPNode)
 				ANUPF := dataPath.FirstDPNode
 				for _, DLPDR := range ANUPF.DownLinkTunnel.PDR {
 
@@ -354,11 +359,14 @@ func HandleUpdateN2Msg(txn *transaction.Transaction, response *models.UpdateSmCo
 
 					pdrList = append(pdrList, DLPDR)
 					farList = append(farList, DLPDR.FAR)
+					fmt.Println("db - in HandleUpdateN2Msg DLPDR.FAR ", DLPDR.FAR)
 
 					if _, exist := smContext.PendingUPF[ANUPF.GetNodeIP()]; !exist {
 						smContext.PendingUPF[ANUPF.GetNodeIP()] = true
 					}
 				}
+
+				fmt.Println("db - in HandleUpdateN2Msg farList ", farList)
 			}
 		}
 

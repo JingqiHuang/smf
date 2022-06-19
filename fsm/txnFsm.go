@@ -181,7 +181,7 @@ func (SmfTxnFsm) TxnSuccess(txn *transaction.Transaction) (transaction.TxnEvent,
 
 	//put Success Rsp
 	txn.Status <- true
-	return transaction.TxnEventEnd, nil
+	return transaction.TxnEventSave, nil
 }
 
 func (SmfTxnFsm) TxnFailure(txn *transaction.Transaction) (transaction.TxnEvent, error) {
@@ -237,6 +237,7 @@ func (SmfTxnFsm) TxnAbort(txn *transaction.Transaction) (transaction.TxnEvent, e
 }
 
 func (SmfTxnFsm) TxnSave(txn *transaction.Transaction) (transaction.TxnEvent, error) {
+	smf_context.StoreSmContextInDB(txn.Ctxt.(*smf_context.SMContext))
 	return transaction.TxnEventEnd, nil
 }
 

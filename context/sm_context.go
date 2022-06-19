@@ -169,7 +169,7 @@ type SMContext struct {
 	SubQosLog      *logrus.Entry `json:"-" yaml:"subQosLog" bson:"-"`
 
 	//TxnBus per subscriber
-	TxnBus       transaction.TxnBus `json:"txnBus,omitempty" yaml:"txnBus" bson:"txnBus,omitempty"`
+	TxnBus       transaction.TxnBus `json:"-" yaml:"txnBus" bson:"-"`
 	SMTxnBusLock sync.Mutex         `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
 
 	// encountered a cycle via *context.SMContext
@@ -364,7 +364,7 @@ func (smContext *SMContext) SetCreateData(createData *models.SmContextCreateData
 	smContext.AddUeLocation = createData.AddUeLocation
 	smContext.OldPduSessionId = createData.OldPduSessionId
 	smContext.ServingNfId = createData.ServingNfId
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) BuildCreatedData() (createdData *models.SmContextCreatedData) {
@@ -429,7 +429,7 @@ func (smContext *SMContext) PCFSelection() error {
 			smContext.SMPolicyClient = Npcf_SMPolicyControl.NewAPIClient(SmPolicyControlConf)
 		}
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -460,7 +460,7 @@ func (smContext *SMContext) AllocateLocalSEIDForUPPath(path UPPath) {
 			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
@@ -480,7 +480,7 @@ func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
 			StoreSeidContextInDB(allocatedSEID, smContext)
 		}
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) PutPDRtoPFCPSession(nodeID pfcpType.NodeID, pdrList map[string]*PDR) error {
@@ -493,7 +493,7 @@ func (smContext *SMContext) PutPDRtoPFCPSession(nodeID pfcpType.NodeID, pdrList 
 	} else {
 		return fmt.Errorf("error, can't find PFCPContext[%s] to put PDR(%v)", NodeIDtoIP, pdrList)
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -501,7 +501,7 @@ func (smContext *SMContext) RemovePDRfromPFCPSession(nodeID pfcpType.NodeID, pdr
 	NodeIDtoIP := nodeID.ResolveNodeIdToIp().String()
 	pfcpSessCtx := smContext.PFCPContext[NodeIDtoIP]
 	delete(pfcpSessCtx.PDRs, pdr.PDRID)
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 }
 
 func (smContext *SMContext) isAllowedPDUSessionType(requestedPDUSessionType uint8) error {
@@ -583,7 +583,7 @@ func (smContext *SMContext) isAllowedPDUSessionType(requestedPDUSessionType uint
 	default:
 		return fmt.Errorf("Requested PDU Sesstion type[%d] is not supported", requestedPDUSessionType)
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	return nil
 }
 
@@ -654,7 +654,7 @@ func (smContext *SMContext) GeneratePDUSessionEstablishmentReject(cause string) 
 			},
 		}
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	return httpResponse
 }
 
@@ -672,7 +672,7 @@ func (smContext *SMContext) CommitSmPolicyDecision(status bool) error {
 	if len(smContext.SmPolicyUpdates) >= 1 {
 		smContext.SmPolicyUpdates = smContext.SmPolicyUpdates[1:]
 	}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	//Notify PCF of failure ?
 	//TODO
 	return nil
