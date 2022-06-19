@@ -385,7 +385,7 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 
 func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
-	// fmt.Println("db - in StoreSmContextInDB before ToBsonM smcontext.SMPolicyClient = ", smContext.SMPolicyClient)
+	fmt.Println("db - in StoreSmContextInDB before ToBsonM")
 	smContextBsonA := ToBsonM(smContext)
 	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContext.SMPolicyClient = ", smContext.SMPolicyClient)
 	filter := bson.M{"ref": smContext.Ref}
@@ -460,11 +460,10 @@ func DeleteContextInDBBySEID(seid uint64) {
 	logger.CtxLog.Infof("filter : ", filter)
 
 	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
-	seidStr := strconv.FormatInt(int64(seid), 10)
-	ref := result[seidStr].(string)
+	ref := result["ref"].(string)
 	fmt.Println("GetSMContextBySEIDInDB, ref string : ", ref)
 
-	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)
+	MongoDBLibrary.RestfulAPIDeleteOne(SeidSmContextCol, filter)
 	DeleteContextInDBByRef(ref)
 	fmt.Println("db - finished delete SMContext by seid In DB!!")
 

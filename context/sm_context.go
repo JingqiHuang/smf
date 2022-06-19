@@ -169,7 +169,7 @@ type SMContext struct {
 	SubQosLog      *logrus.Entry `json:"-" yaml:"subQosLog" bson:"-"`
 
 	//TxnBus per subscriber
-	TxnBus       transaction.TxnBus `json:"txnBus,omitempty" yaml:"txnBus" bson:"txnBus,omitempty"`
+	TxnBus       transaction.TxnBus `json:"-" yaml:"txnBus" bson:"-"`
 	SMTxnBusLock sync.Mutex         `json:"smTxnBusLock,omitempty" yaml:"smTxnBusLock" bson:"smTxnBusLock,omitempty"`
 
 	// encountered a cycle via *context.SMContext
