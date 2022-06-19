@@ -389,6 +389,7 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 			smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, send PFCP Modification")
 
 			//Initiate PFCP Modify
+			fmt.Println("db - in HandlePDUSessionSMContextUpdate pfcpParam ", pfcpParam)
 			if err = SendPfcpSessionModifyReq(smContext, pfcpParam); err != nil {
 				//Modify failure
 				smContext.SubCtxLog.Errorf("pfcp session modify error: %v ", err.Error())

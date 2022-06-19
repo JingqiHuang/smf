@@ -75,6 +75,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 					for _, pdr := range curDataPathNode.UpLinkTunnel.PDR {
 						pdrList = append(pdrList, pdr)
 						farList = append(farList, pdr.FAR)
+						fmt.Println("db - in SendPFCPRules ul pdr.FAR ", pdr.FAR)
 						if pdr.QER != nil {
 							qerList = append(qerList, pdr.QER...)
 						}
@@ -84,6 +85,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 					for _, pdr := range curDataPathNode.DownLinkTunnel.PDR {
 						pdrList = append(pdrList, pdr)
 						farList = append(farList, pdr.FAR)
+						fmt.Println("db - in SendPFCPRules dl pdr.FAR ", pdr.FAR)
 
 						if pdr.QER != nil {
 							qerList = append(qerList, pdr.QER...)
@@ -104,6 +106,9 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 					pfcpState.farList = append(pfcpState.farList, farList...)
 					pfcpState.qerList = append(pfcpState.qerList, qerList...)
 				}
+
+				fmt.Println("db - in SendPFCPRules farList ", farList)
+
 			}
 		}
 	}

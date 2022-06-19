@@ -6,6 +6,7 @@
 package producer
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/omec-project/http_wrapper"
@@ -127,7 +128,7 @@ func HandleUpCnxState(txn *transaction.Transaction, response *models.UpdateSmCon
 	body := txn.Req.(models.UpdateSmContextRequest)
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 	smContextUpdateData := body.JsonData
-
+	fmt.Println("db -  in HandleUpCnxState smContextUpdateData.UpCnxState ", smContextUpdateData.UpCnxState)
 	switch smContextUpdateData.UpCnxState {
 	case models.UpCnxState_ACTIVATING:
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, UP cnx state %v received", smContextUpdateData.UpCnxState)

@@ -286,16 +286,16 @@ func (smContext *SMContext) ChangeState(nextState SMContextState) {
 //*** add unit test ***//
 func GetSMContext(ref string) (smContext *SMContext) {
 	fmt.Println("db - in GetSMContext")
-	// if value, ok := smContextPool.Load(ref); ok {
-	// var mem_smContext *SMContext
-	if _, ok := smContextPool.Load(ref); ok {
+	if value, ok := smContextPool.Load(ref); ok {
+		// var mem_smContext *SMContext
+		// if _, ok := smContextPool.Load(ref); ok {
 		fmt.Println("db - found in GetSMContext using mem val")
-		// mem_smContext = value.(*SMContext)
+		smContext = value.(*SMContext)
 	} else {
 		fmt.Println("db - found in GetSMContext using GetSMContextByRefInDB")
 		// smContext = GetSMContextByRefInDB(ref)
 	}
-	smContext = GetSMContextByRefInDB(ref)
+	// smContext = GetSMContextByRefInDB(ref)
 	// smContext.ActiveTxn = nil
 	fmt.Println("db - in GetSMContext before return ")
 	// fmt.Println("db - in GetSMContext before return db_smContext = ", db_smContext)
@@ -342,9 +342,11 @@ func RemoveSMContext(ref string) {
 func GetSMContextBySEID(SEID uint64) (smContext *SMContext) {
 	if value, ok := seidSMContextMap.Load(SEID); ok {
 		smContext = value.(*SMContext)
-	} else {
-		smContext = GetSMContextBySEIDInDB(SEID)
 	}
+	// else {
+	// 	smContext = GetSMContextBySEIDInDB(SEID)
+	// }
+	// smContext = GetSMContextBySEIDInDB(SEID)
 	return
 }
 

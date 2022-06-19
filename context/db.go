@@ -230,10 +230,13 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	for key, pfcpCtx := range smContext.PFCPContext {
 		pfcpSessionContextInDB.NodeID = pfcpCtx.NodeID
 		pfcpSessionContextInDB.PDRs = pfcpCtx.PDRs
+		fmt.Println("in customized marshalling pfcpCtx.PDRs ", pfcpCtx.PDRs)
+		fmt.Println("in customized marshalling pfcpSessionContextInDB.PDRs ", pfcpSessionContextInDB.PDRs)
 		pfcpSessionContextInDB.LocalSEID = strconv.FormatUint(pfcpCtx.LocalSEID, 10)
 		pfcpSessionContextInDB.RemoteSEID = strconv.FormatUint(pfcpCtx.RemoteSEID, 10)
 		PFCPContextVal[key] = pfcpSessionContextInDB
 	}
+	fmt.Println("in customized marshalling PFCPContextVal ", PFCPContextVal)
 
 	// fmt.Println("db - in MarshalJSON before return")
 	// fmt.Println("db - in MarshalJSON smContext ", smContext)
@@ -269,10 +272,14 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 
 	// recover smContext.PFCPContext
 	smContext.PFCPContext = make(map[string]*PFCPSessionContext)
+	fmt.Println("in customized unmarshalling aux.PFCPContextVal ", aux.PFCPContextVal)
 	for key, pfcpCtxInDB := range aux.PFCPContextVal {
 		smContext.PFCPContext[key] = &PFCPSessionContext{}
 		smContext.PFCPContext[key].NodeID = pfcpCtxInDB.NodeID
 		smContext.PFCPContext[key].PDRs = pfcpCtxInDB.PDRs
+		fmt.Println("in customized unmarshalling key ", key)
+		fmt.Println("in customized unmarshalling pfcpCtxInDB.PDRs ", pfcpCtxInDB.PDRs)
+		fmt.Println("in customized unmarshalling smContext.PFCPContext[key].PDRs ", smContext.PFCPContext[key].PDRs)
 		smContext.PFCPContext[key].LocalSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.LocalSEID), 10, 64)
 		smContext.PFCPContext[key].RemoteSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.RemoteSEID), 10, 64)
 	}
