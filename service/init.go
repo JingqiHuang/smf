@@ -243,7 +243,7 @@ func (smf *SMF) setLogLevel() {
 
 	mongoDBLibLogger.MongoDBLog.Warnln("MongoDBLibrary Log level not set. Default set to [info] level")
 	mongoDBLibLogger.SetLogLevel(logrus.InfoLevel)
-	
+
 	//Initialise Statistics
 	go metrics.InitMetrics()
 
@@ -332,6 +332,8 @@ func (smf *SMF) Start() {
 
 	udp.Run(pfcp.Dispatch)
 
+	logger.AppLog.Infof("after udp.Run(pfcp.Dispatch)")
+
 	for _, upf := range context.SMF_Self().UserPlaneInformation.UPFs {
 		if upf.NodeID.NodeIdType == pfcpType.NodeIdTypeFqdn {
 			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s](%s)\n", upf.NodeID.NodeIdValue,
@@ -372,7 +374,6 @@ func (smf *SMF) Start() {
 	if err != nil {
 		initLog.Fatalln("HTTP server setup failed:", err)
 	}
-
 
 }
 

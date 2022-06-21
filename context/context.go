@@ -82,6 +82,22 @@ func AllocateLocalSEID() uint64 {
 	return smfContext.LocalSEIDCount
 }
 
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
 func InitSmfContext(config *factory.Config) {
 	if config == nil {
 		logger.CtxLog.Error("Config is nil")
@@ -100,6 +116,10 @@ func InitSmfContext(config *factory.Config) {
 	}
 
 	sbi := configuration.Sbi
+	localIp := GetLocalIP()
+	logger.CtxLog.Info("sbi lb - smf localIp ", localIp)
+	logger.CtxLog.Info("sbi lb - smf sbi ", sbi)
+
 	if sbi == nil {
 		logger.CtxLog.Errorln("Configuration needs \"sbi\" value")
 		return
@@ -108,6 +128,10 @@ func InitSmfContext(config *factory.Config) {
 		smfContext.RegisterIPv4 = factory.SMF_DEFAULT_IPV4 // default localhost
 		smfContext.SBIPort = factory.SMF_DEFAULT_PORT_INT  // default port
 		if sbi.RegisterIPv4 != "" {
+			logger.CtxLog.Info("sbi lb - smf sbi.RegisterIPv4 ", sbi.RegisterIPv4)
+			sbi.RegisterIPv4 = localIp
+			logger.CtxLog.Info("sbi lb - changing smf sbi.RegisterIPv4 ", sbi.RegisterIPv4)
+			logger.CtxLog.Info("sbi lb - smf smfContext.RegisterIPv4 ", smfContext.RegisterIPv4)
 			smfContext.RegisterIPv4 = sbi.RegisterIPv4
 		}
 		if sbi.Port != 0 {

@@ -72,6 +72,7 @@ func HandleEvent(smContext *smf_context.SMContext, event SmEvent, eventData SmEv
 			smContext.SMContextState.String(), event.String(), nextState.String(), err.Error())
 		return err
 	} else {
+		fmt.Println("db - in HandleEvent before changing to next state ", nextState)
 		smContext.ChangeState(nextState)
 	}
 	// smf_context.StoreSmContextInDB(smContext)

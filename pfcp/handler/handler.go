@@ -264,6 +264,9 @@ func HandlePfcpSessionEstablishmentResponse(msg *pfcpUdp.Message) {
 			smContext.SubPfcpLog.Errorf("PFCP Session Establishment rejected with cause [%v]", rsp.Cause.CauseValue)
 			if rsp.Cause.CauseValue ==
 				pfcpType.CauseNoEstablishedPfcpAssociation {
+				smContext.SubPfcpLog.Infof("sbi lb - rsp.Cause.CauseValue == pfcpType.CauseNoEstablishedPfcpAssociation")
+				smContext.SubPfcpLog.Infof("sbi lb - *rsp.NodeID", *rsp.NodeID)
+				smContext.SubPfcpLog.Infof("sbi lb - msg.PfcpMessage.Header.MessageType", msg.PfcpMessage.Header.MessageType)
 				SetUpfInactive(*rsp.NodeID, msg.PfcpMessage.Header.MessageType)
 			}
 		}
@@ -303,9 +306,11 @@ func HandlePfcpSessionModificationResponse(msg *pfcpUdp.Message) {
 			producer.AddPDUSessionAnchorAndULCL(smContext, upfNodeID)
 		}
 	}
+	logger.PfcpLog.Infoln("In HandlePfcpSessionModificationResponse smContext.SMContextState", smContext.SMContextState)
 
 	if pfcpRsp.Cause.CauseValue == pfcpType.CauseRequestAccepted {
 		smContext.SubPduSessLog.Infoln("PFCP Modification Response Accept")
+
 		if smContext.SMContextState == smf_context.SmStatePfcpModify {
 			upfNodeID := smContext.GetNodeIDByLocalSEID(SEID)
 			upfIP := upfNodeID.ResolveNodeIdToIp().String()
@@ -325,7 +330,6 @@ func HandlePfcpSessionModificationResponse(msg *pfcpUdp.Message) {
 				}
 			}
 		}
-
 		smContext.SubPfcpLog.Infof("PFCP Session Modification Success[%d]\n", SEID)
 	} else {
 		smContext.SubPfcpLog.Infof("PFCP Session Modification Failed[%d]\n", SEID)

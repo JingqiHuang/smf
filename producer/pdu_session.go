@@ -358,6 +358,7 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle pfcpParam.farList ", pfcpParam.farList)
 	var httpResponse *http_wrapper.Response
 	// Check FSM and take corresponding action
+	fmt.Println("db - in HandlePDUSessionSMContextUpdate smContext.SMContextState", smContext.SMContextState)
 	switch smContext.SMContextState {
 	case smf_context.SmStatePfcpModify:
 
@@ -386,6 +387,7 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 			}
 
 		} else if pfcpAction.sendPfcpModify {
+			fmt.Println("db - in HandlePDUSessionSMContextUpdate pfcpAction.sendPfcpModify")
 			smContext.ChangeState(smf_context.SmStatePfcpModify)
 			smContext.SubCtxLog.Traceln("PDUSessionSMContextUpdate, SMContextState Change State: ", smContext.SMContextState.String())
 			smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, send PFCP Modification")
@@ -418,6 +420,7 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 
 				smContext.ChangeState(smf_context.SmStateActive)
 				smContext.SubCtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
+				fmt.Println("db - in HandlePDUSessionSMContextUpdate SMContextState Change State: ", smContext.SMContextState.String())
 			}
 		}
 

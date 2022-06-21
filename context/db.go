@@ -385,17 +385,19 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 
 func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
-	// fmt.Println("db - in StoreSmContextInDB before ToBsonM smcontext.SMPolicyClient = ", smContext.SMPolicyClient)
+	// fmt.Println("db - in StoreSmContextInDB before ToBsonM smcontext.Tunnel.DataPathPool = ", smContext.Tunnel.DataPathPool)
+	fmt.Println("db - in StoreSmContextInDB before ToBsonM smContext = ", smContext)
 	smContextBsonA := ToBsonM(smContext)
+	fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA = ", smContextBsonA)
 	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContext.SMPolicyClient = ", smContext.SMPolicyClient)
 	filter := bson.M{"ref": smContext.Ref}
 	logger.CtxLog.Infof("filter: ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
-	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA from db = ", smContextBsonA)
+	fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA from db = ", smContextBsonA)
 
 	// result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
-	// fmt.Println("db - in StoreSmContextInDB after ToBsonM res from db = ", result)
+	fmt.Println("db - finish StoreSmContextInDB ")
 
 }
 
@@ -430,6 +432,7 @@ func GetSMContextByRefInDB(ref string) (smContext *SMContext) {
 	// TBA Return SM context, reconstruct SM context from DB json
 	err := json.Unmarshal(mapToByte(result), smContext)
 	// fmt.Println("GetSMContextByRefInDB, after Unmarshal : %v", smContext)
+
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
@@ -460,8 +463,7 @@ func DeleteContextInDBBySEID(seid uint64) {
 	logger.CtxLog.Infof("filter : ", filter)
 
 	result := MongoDBLibrary.RestfulAPIGetOne(SeidSmContextCol, filter)
-	seidStr := strconv.FormatInt(int64(seid), 10)
-	ref := result[seidStr].(string)
+	ref := result["ref"].(string)
 	fmt.Println("GetSMContextBySEIDInDB, ref string : ", ref)
 
 	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)
