@@ -253,7 +253,7 @@ func (node *DataPathNode) DeactivateUpLinkTunnel(smContext *SMContext) {
 	teid := node.DownLinkTunnel.TEID
 	node.UPF.teidGenerator.FreeID(int64(teid))
 	node.DownLinkTunnel = &GTPTunnel{}
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 }
 
 func (node *DataPathNode) DeactivateDownLinkTunnel(smContext *SMContext) {

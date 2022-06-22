@@ -80,6 +80,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 							qerList = append(qerList, pdr.QER...)
 						}
 					}
+					fmt.Println("db - in SendPFCPRules UpLinkTunnel -  ", farList)
 				}
 				if curDataPathNode.DownLinkTunnel != nil && curDataPathNode.DownLinkTunnel.PDR != nil {
 					for _, pdr := range curDataPathNode.DownLinkTunnel.PDR {
@@ -91,9 +92,13 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 							qerList = append(qerList, pdr.QER...)
 						}
 					}
+					fmt.Println("db - in SendPFCPRules DownLinkTunnel -  ", farList)
 				}
 
 				pfcpState := pfcpPool[curDataPathNode.GetNodeIP()]
+				fmt.Println("db - in SendPFCPRules farList ", farList)
+				fmt.Println("db - in SendPFCPRules curDataPathNode.GetNodeIP() ", curDataPathNode.GetNodeIP())
+				fmt.Println("db - in SendPFCPRules pfcpState ", pfcpState)
 				if pfcpState == nil {
 					pfcpPool[curDataPathNode.GetNodeIP()] = &PFCPState{
 						nodeID:  curDataPathNode.UPF.NodeID,
@@ -126,7 +131,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 	}
 
 	fmt.Println("db - in SendPFCPRules before StoreSmContextInDB")
-	smf_context.StoreSmContextInDB(smContext)
+	// smf_context.StoreSmContextInDB(smContext)
 }
 
 func removeDataPath(smContext *smf_context.SMContext, datapath *smf_context.DataPath) {

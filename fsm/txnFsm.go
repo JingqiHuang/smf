@@ -183,7 +183,7 @@ func (SmfTxnFsm) TxnSuccess(txn *transaction.Transaction) (transaction.TxnEvent,
 	fmt.Println("db - in TxnSuccess -  smContext.TxnBus", txn.Ctxt.(*smf_context.SMContext).TxnBus)
 	smf_context.StoreSmContextInDB(txn.Ctxt.(*smf_context.SMContext))
 	txn.Status <- true
-	return transaction.TxnEventEnd, nil
+	return transaction.TxnEventSave, nil
 }
 
 func (SmfTxnFsm) TxnFailure(txn *transaction.Transaction) (transaction.TxnEvent, error) {
@@ -239,6 +239,7 @@ func (SmfTxnFsm) TxnAbort(txn *transaction.Transaction) (transaction.TxnEvent, e
 }
 
 func (SmfTxnFsm) TxnSave(txn *transaction.Transaction) (transaction.TxnEvent, error) {
+	smf_context.StoreSmContextInDB(txn.Ctxt.(*smf_context.SMContext))
 	return transaction.TxnEventEnd, nil
 }
 

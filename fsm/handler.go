@@ -74,7 +74,7 @@ func HandleEvent(smContext *smf_context.SMContext, event SmEvent, eventData SmEv
 	} else {
 		smContext.ChangeState(nextState)
 	}
-	smf_context.StoreSmContextInDB(smContext)
+	// smf_context.StoreSmContextInDB(smContext)
 	return nil
 }
 
