@@ -392,17 +392,13 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 
 func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
-	fmt.Println("db - in StoreSmContextInDB before ToBsonM")
+	fmt.Println("db - in StoreSmContextInDB before ToBsonM smContext = ", smContext)
 	smContextBsonA := ToBsonM(smContext)
-	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContext.SMPolicyClient = ", smContext.SMPolicyClient)
+	fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA = ", smContextBsonA)
 	filter := bson.M{"ref": smContext.Ref}
 	logger.CtxLog.Infof("filter: ", filter)
 
 	MongoDBLibrary.RestfulAPIPost(SmContextDataColl, filter, smContextBsonA)
-	// fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA from db = ", smContextBsonA)
-
-	// result := MongoDBLibrary.RestfulAPIGetOne(SmContextDataColl, filter)
-	// fmt.Println("db - in StoreSmContextInDB after ToBsonM res from db = ", result)
 
 }
 
@@ -436,7 +432,6 @@ func GetSMContextByRefInDB(ref string) (smContext *SMContext) {
 	// fmt.Println("GetSMContextByRefInDB, smf state json : %v", result)
 	// TBA Return SM context, reconstruct SM context from DB json
 	err := json.Unmarshal(mapToByte(result), smContext)
-	// fmt.Println("GetSMContextByRefInDB, after Unmarshal : %v", smContext)
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
