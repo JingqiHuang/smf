@@ -181,7 +181,7 @@ func (SmfTxnFsm) TxnSuccess(txn *transaction.Transaction) (transaction.TxnEvent,
 
 	//put Success Rsp
 	fmt.Println("db - in TxnSuccess -  smContext.TxnBus", txn.Ctxt.(*smf_context.SMContext).TxnBus)
-	smf_context.StoreSmContextInDB(txn.Ctxt.(*smf_context.SMContext))
+	// smf_context.StoreSmContextInDB(txn.Ctxt.(*smf_context.SMContext))
 	txn.Status <- true
 	return transaction.TxnEventSave, nil
 }

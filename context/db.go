@@ -270,6 +270,8 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	fmt.Println("db - in UnmarshalJSON recovering smContext.UpCnxState = ", smContext.UpCnxState)
+
 	// recover smContext.PFCPContext
 	smContext.PFCPContext = make(map[string]*PFCPSessionContext)
 	fmt.Println("in customized unmarshalling aux.PFCPContextVal ", aux.PFCPContextVal)
@@ -348,7 +350,7 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 	// smContext.ActiveTxn.Ctxt = smContext
 	// smContext.ActiveTxn.CtxtKey = smContext.Ref
 
-	// fmt.Println("db - after Unmarshal in customized unMarshall after recover Tunnel %v", smContext.Tunnel)
+	fmt.Println("db - after Unmarshal in customized unMarshall after recover smContext ", smContext)
 
 	return nil
 }
@@ -393,6 +395,7 @@ func ToBsonM(data *SMContext) (ret bson.M) {
 func StoreSmContextInDB(smContext *SMContext) {
 	fmt.Println("db - Store SMContext In DB w ref!!")
 	fmt.Println("db - in StoreSmContextInDB before ToBsonM smContext = ", smContext)
+	fmt.Println("db - in StoreSmContextInDB before ToBsonM smContext.UpCnxState = ", smContext.UpCnxState)
 	smContextBsonA := ToBsonM(smContext)
 	fmt.Println("db - in StoreSmContextInDB after ToBsonM smContextBsonA = ", smContextBsonA)
 	filter := bson.M{"ref": smContext.Ref}

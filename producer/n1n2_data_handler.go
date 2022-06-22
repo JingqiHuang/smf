@@ -158,6 +158,7 @@ func HandleUpCnxState(txn *transaction.Transaction, response *models.UpdateSmCon
 			smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, SMContext State[%v] should be Active State", smContext.SMContextState.String())
 		}
 		if smContext.Tunnel != nil {
+			fmt.Println("db -  in HandleUpCnxState smContext.Tunnel != nil", smContext.Tunnel)
 			smContext.ChangeState(smf_context.SmStateModify)
 			smContext.SubCtxLog.Traceln("PDUSessionSMContextUpdate, SMContextState Change State: ", smContext.SMContextState.String())
 			response.JsonData.UpCnxState = models.UpCnxState_DEACTIVATED

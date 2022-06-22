@@ -306,6 +306,7 @@ func HandlePfcpSessionModificationResponse(msg *pfcpUdp.Message) {
 
 	if pfcpRsp.Cause.CauseValue == pfcpType.CauseRequestAccepted {
 		smContext.SubPduSessLog.Infoln("PFCP Modification Response Accept")
+		fmt.Printf("db - smContext.SMContextState = %s\n", smContext.SMContextState)
 		if smContext.SMContextState == smf_context.SmStatePfcpModify {
 			upfNodeID := smContext.GetNodeIDByLocalSEID(SEID)
 			upfIP := upfNodeID.ResolveNodeIdToIp().String()
@@ -314,6 +315,8 @@ func HandlePfcpSessionModificationResponse(msg *pfcpUdp.Message) {
 
 			if smContext.PendingUPF.IsEmpty() {
 				smContext.SBIPFCPCommunicationChan <- smf_context.SessionUpdateSuccess
+			} else {
+				fmt.Println("db - smContext.PendingUPF is not empty ", smContext.PendingUPF)
 			}
 
 			if smf_context.SMF_Self().ULCLSupport && smContext.BPManager != nil {
