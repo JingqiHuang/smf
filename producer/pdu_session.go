@@ -356,6 +356,7 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 
 	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle pfcpParam ", pfcpParam)
 	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle pfcpParam.farList ", pfcpParam.farList)
+	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle smContext.SMContextState ", smContext.SMContextState)
 	var httpResponse *http_wrapper.Response
 	// Check FSM and take corresponding action
 	switch smContext.SMContextState {

@@ -53,9 +53,7 @@ func RecoverTunnel(tunnelInfo *TunnelInfo) (tunnel *GTPTunnel) {
 	}
 	var nilVal *NodeIDInDB = nil
 	var nilValNode *DataPathNode = nil
-	// fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID = %v", tunnelInfo.DataPathNodeUPFNodeID)
 	empty_nodeID := &NodeIDInDB{}
-	// fmt.Println("In RecoverTunnel bool2",(tunnelInfo.DataPathNodeUPFNodeID.NodeIdType == 0) && (testEq(tunnelInfo.DataPathNodeUPFNodeID.NodeIdValue, empty_nodeID.NodeIdValue)))
 	if &tunnelInfo.DataPathNodeUPFNodeID != nilVal {
 		// fmt.Println("In RecoverTunnel &tunnelInfo.DataPathNodeUPFNodeID != nilVal")
 		if (tunnelInfo.DataPathNodeUPFNodeID.NodeIdType == empty_nodeID.NodeIdType) && (testEq(tunnelInfo.DataPathNodeUPFNodeID.NodeIdValue, empty_nodeID.NodeIdValue)) {
@@ -165,8 +163,6 @@ func RecoverDataPathNode(dataPathNodeInDB *DataPathNodeInDB) (dataPathNode *Data
 
 		uLTunnelInfo := dataPathNodeInDB.ULTunnelInfo
 		dLTunnelInfo := dataPathNodeInDB.DLTunnelInfo
-		// fmt.Println("db - in RecoverDataPathNode uLTunnelInfo %v ", uLTunnelInfo)
-		// fmt.Println("db - in RecoverDataPathNode dLTunnelInfo %v ", dLTunnelInfo)
 
 		if uLTunnelInfo != nilVarTunnelInfo {
 			// fmt.Println("db - in RecoverDataPathNode uLTunnelInfo != nilVarTunnelInfo ")
@@ -222,19 +218,13 @@ func StoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPathNo
 				// fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP != nilValDpn %v", upLinkTunnelDEP)
 				uLTunnelInfo.DataPathNodeUPFNodeID = GetNodeIDInDB(upLinkTunnelSEP.UPF.NodeID)
 			}
-			// else {
-			// 	fmt.Println("db - in StoreDataPathNode upLinkTunnelSEP == nilValDpn")
-			// }
-
 			dataPathNodeInDB.ULTunnelInfo = uLTunnelInfo
 
 		}
 
 		// fmt.Println("db - in StoreDataPathNode checking downLinkTunnel")
 		if downLinkTunnel != nilValTunnel {
-			// fmt.Println("db - in StoreDataPathNode downLinkTunnel != nilValTunnel %v ", downLinkTunnel)
 
-			// store dLTunnelInfo
 			dLTunnelInfo.TEID = downLinkTunnel.TEID
 			dLTunnelInfo.PDR = downLinkTunnel.PDR
 
@@ -243,9 +233,6 @@ func StoreDataPathNode(dataPathNode *DataPathNode) (dataPathNodeInDB *DataPathNo
 				// fmt.Println("db - in StoreDataPathNode dlLinkTunnelSEP != nilValDpn")
 				dLTunnelInfo.DataPathNodeUPFNodeID = GetNodeIDInDB(dlLinkTunnelSEP.UPF.NodeID)
 			}
-			// else {
-			// 	fmt.Println("db - in StoreDataPathNode dlLinkTunnelDEP == nilValDpn")
-			// }
 			dataPathNodeInDB.DLTunnelInfo = dLTunnelInfo
 		}
 		fmt.Println("db - in StoreDataPathNode return dataPathNodeInDB")

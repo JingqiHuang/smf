@@ -191,10 +191,10 @@ func HandleUpCnxState(txn *transaction.Transaction, response *models.UpdateSmCon
 			}
 
 			pfcpParam.farList = append(pfcpParam.farList, farList...)
-
 			pfcpAction.sendPfcpModify = true
+			fmt.Println("db - in HandleUpCnxState before ChangeState...")
 			smContext.ChangeState(smf_context.SmStatePfcpModify)
-			smContext.SubCtxLog.Traceln("PDUSessionSMContextUpdate, SMContextState Change State: ", smContext.SMContextState.String())
+			smContext.SubCtxLog.Info("PDUSessionSMContextUpdate, SMContextState Change State: ", smContext.SMContextState.String())
 		}
 	}
 	return nil

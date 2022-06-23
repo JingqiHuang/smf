@@ -225,7 +225,7 @@ func NewSMContext(identifier string, pduSessID int32) (smContext *SMContext) {
 
 	// fmt.Println("db - in new smcontext smcontext val ", smContext)
 	fmt.Println("db - in new smcontext smcontext val ref", smContext.Ref)
-	StoreSmContextInDB(smContext)
+	// StoreSmContextInDB(smContext)
 	return smContext
 }
 
@@ -288,23 +288,21 @@ func (smContext *SMContext) ChangeState(nextState SMContextState) {
 //*** add unit test ***//
 func GetSMContext(ref string) (smContext *SMContext) {
 	fmt.Println("db - in GetSMContext")
-	// if value, ok := smContextPool.Load(ref); ok {
-	if _, ok := smContextPool.Load(ref); ok {
+	fmt.Println("db - in GetSMContext smContextPool ...")
+	ShowSmContextPool()
+	fmt.Println("db - in GetSMContext smContextPool find smcontext w ref = ", ref)
+	if value, ok := smContextPool.Load(ref); ok {
+		// if _, ok := smContextPool.Load(ref); ok {
 		fmt.Println("db - found in GetSMContext using mem val")
-		// smContext = value.(*SMContext)
+		smContext = value.(*SMContext)
 	} else {
 		fmt.Println("db - found in GetSMContext using GetSMContextByRefInDB")
-		// smContext = GetSMContextByRefInDB(ref)
+		smContext = GetSMContextByRefInDB(ref)
+		smContextPool.Store(ref, smContext)
+		fmt.Println("db - in GetSMContext after storing smContextPool", smContextPool)
 	}
-	smContext = GetSMContextByRefInDB(ref)
-	// smContext.ActiveTxn = nil
-	fmt.Println("db - in GetSMContext before return ")
-	// fmt.Println("db - in GetSMContext before return db_smContext = ", db_smContext)
-	// fmt.Println("db - in GetSMContext before return smContext.ActiveTxn = ", smContext.ActiveTxn)
-	// fmt.Println("db - in GetSMContext before return db_smContext.ActiveTxn = ", db_smContext.ActiveTxn)
-	// fmt.Println("db - in GetSMContext before return smContext.Tunnel = ", smContext.Tunnel)
-	// fmt.Println("db - in GetSMContext before return db_smContext.Tunnel = ", db_smContext.Tunnel)
 
+	fmt.Println("db - in GetSMContext before return ")
 	return
 }
 
@@ -341,12 +339,14 @@ func RemoveSMContext(ref string) {
 
 //*** add unit test ***//
 func GetSMContextBySEID(SEID uint64) (smContext *SMContext) {
+	fmt.Println("db - in GetSMContextBySEID")
 	if value, ok := seidSMContextMap.Load(SEID); ok {
+		fmt.Println("db - in GetSMContextBySEID get from mem...")
 		smContext = value.(*SMContext)
+	} else {
+		fmt.Println("db - in GetSMContextBySEID get from GetSMContextBySEIDInDB()...")
+		smContext = GetSMContextBySEIDInDB(SEID)
 	}
-	// else {
-	// 	smContext = GetSMContextBySEIDInDB(SEID)
-	// }
 	// smContext = GetSMContextBySEIDInDB(SEID)
 	return
 }
@@ -461,6 +461,7 @@ func (smContext *SMContext) AllocateLocalSEIDForUPPath(path UPPath) {
 			seidSMContextMap.Store(allocatedSEID, smContext)
 			fmt.Println("db - AllocateLocalSEIDForUPPath")
 			StoreSeidContextInDB(allocatedSEID, smContext)
+			StoreRefToSeidInDB(allocatedSEID, smContext)
 		}
 	}
 	// StoreSmContextInDB(smContext)
@@ -481,6 +482,7 @@ func (smContext *SMContext) AllocateLocalSEIDForDataPath(dataPath *DataPath) {
 
 			seidSMContextMap.Store(allocatedSEID, smContext)
 			StoreSeidContextInDB(allocatedSEID, smContext)
+			StoreRefToSeidInDB(allocatedSEID, smContext)
 		}
 	}
 	// StoreSmContextInDB(smContext)

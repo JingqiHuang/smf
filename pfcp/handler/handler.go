@@ -258,6 +258,10 @@ func HandlePfcpSessionEstablishmentResponse(msg *pfcpUdp.Message) {
 		// UPF Accept
 		if rsp.Cause.CauseValue == pfcpType.CauseRequestAccepted {
 			smContext.SBIPFCPCommunicationChan <- smf_context.SessionEstablishSuccess
+
+			fmt.Println("db - in HandlePfcpSessionEstablishmentResponse &smContext.SBIPFCPCommunicationChan ", &smContext.SBIPFCPCommunicationChan)
+			fmt.Println("db - in HandlePfcpSessionEstablishmentResponse smContext.SBIPFCPCommunicationChan ", smContext.SBIPFCPCommunicationChan)
+			fmt.Println("db - in HandlePfcpSessionEstablishmentResponse &smContext ", &smContext)
 			smContext.SubPfcpLog.Infof("PFCP Session Establishment accepted")
 		} else {
 			smContext.SBIPFCPCommunicationChan <- smf_context.SessionEstablishFailed

@@ -9,8 +9,6 @@ import (
 	smf_context "github.com/omec-project/smf/context"
 	"github.com/omec-project/smf/logger"
 	pfcp_message "github.com/omec-project/smf/pfcp/message"
-
-	"fmt"
 )
 
 type PFCPState struct {
@@ -75,30 +73,30 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 					for _, pdr := range curDataPathNode.UpLinkTunnel.PDR {
 						pdrList = append(pdrList, pdr)
 						farList = append(farList, pdr.FAR)
-						fmt.Println("db - in SendPFCPRules ul pdr.FAR ", pdr.FAR)
+						// fmt.Println("db - in SendPFCPRules ul pdr.FAR ", pdr.FAR)
 						if pdr.QER != nil {
 							qerList = append(qerList, pdr.QER...)
 						}
 					}
-					fmt.Println("db - in SendPFCPRules UpLinkTunnel -  ", farList)
+					// fmt.Println("db - in SendPFCPRules UpLinkTunnel -  ", farList)
 				}
 				if curDataPathNode.DownLinkTunnel != nil && curDataPathNode.DownLinkTunnel.PDR != nil {
 					for _, pdr := range curDataPathNode.DownLinkTunnel.PDR {
 						pdrList = append(pdrList, pdr)
 						farList = append(farList, pdr.FAR)
-						fmt.Println("db - in SendPFCPRules dl pdr.FAR ", pdr.FAR)
+						// fmt.Println("db - in SendPFCPRules dl pdr.FAR ", pdr.FAR)
 
 						if pdr.QER != nil {
 							qerList = append(qerList, pdr.QER...)
 						}
 					}
-					fmt.Println("db - in SendPFCPRules DownLinkTunnel -  ", farList)
+					// fmt.Println("db - in SendPFCPRules DownLinkTunnel -  ", farList)
 				}
 
 				pfcpState := pfcpPool[curDataPathNode.GetNodeIP()]
-				fmt.Println("db - in SendPFCPRules farList ", farList)
-				fmt.Println("db - in SendPFCPRules curDataPathNode.GetNodeIP() ", curDataPathNode.GetNodeIP())
-				fmt.Println("db - in SendPFCPRules pfcpState ", pfcpState)
+				// fmt.Println("db - in SendPFCPRules farList ", farList)
+				// fmt.Println("db - in SendPFCPRules curDataPathNode.GetNodeIP() ", curDataPathNode.GetNodeIP())
+				// fmt.Println("db - in SendPFCPRules pfcpState ", pfcpState)
 				if pfcpState == nil {
 					pfcpPool[curDataPathNode.GetNodeIP()] = &PFCPState{
 						nodeID:  curDataPathNode.UPF.NodeID,
@@ -112,7 +110,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 					pfcpState.qerList = append(pfcpState.qerList, qerList...)
 				}
 
-				fmt.Println("db - in SendPFCPRules farList ", farList)
+				// fmt.Println("db - in SendPFCPRules farList ", farList)
 
 			}
 		}
@@ -130,7 +128,7 @@ func SendPFCPRules(smContext *smf_context.SMContext) {
 		}
 	}
 
-	fmt.Println("db - in SendPFCPRules before StoreSmContextInDB")
+	// fmt.Println("db - in SendPFCPRules before StoreSmContextInDB")
 	// smf_context.StoreSmContextInDB(smContext)
 }
 
