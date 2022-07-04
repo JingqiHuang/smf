@@ -1,5 +1,7 @@
 # db changes README
 
+DB changes are made to store/retrieve/delete SM context in/from DB
+
 ## db change related files:
 
 context/db.go
