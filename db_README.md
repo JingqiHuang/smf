@@ -27,8 +27,8 @@ Why do we need smf.data.nodeInDB?
 - In the struct UplinkTunnel/DownlinkTunnel *GTPTunnel, it contains SrcEndPoint *DataPathNode. and the SrcEndPoint also contains UplinkTunnel/DownlinkTunnel *GTPTunnel. This causes a cyclic structure that cannot be stored into the database.
 
 - To recover the SrcEndPoint *DataPathNode:
-* Store the ID that can track the SrcEndPoint in the GTPTunnel, which is SrcEndPoint.UPF.NodeID. 
-* Store the DataPathNodeInDB with the ID into the database
+	* Store the ID that can track the SrcEndPoint in the GTPTunnel, which is SrcEndPoint.UPF.NodeID. 
+	* Store the DataPathNodeInDB with the ID into the database
 
     
 ### Note
