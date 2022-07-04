@@ -4,10 +4,10 @@ DB changes are made to store/retrieve/delete SM context in/from DB
 
 ## db change related files:
 
-context/db.go
-context/db_tunnel.go
-context/sm_context.go
-fsm/txnFsm.go
+	context/db.go
+	context/db_tunnel.go
+	context/sm_context.go
+	fsm/txnFsm.go
 
 ##### Major DB operations are written as functions in db.go, including
     MarshalJSON() // customized mashaller for sm context
