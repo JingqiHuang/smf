@@ -223,8 +223,6 @@ func NewSMContext(identifier string, pduSessID int32) (smContext *SMContext) {
 	//initialise log tags
 	smContext.initLogTags()
 
-	// fmt.Println("db - in new smcontext smcontext val ", smContext)
-	fmt.Println("db - in new smcontext smcontext val ref", smContext.Ref)
 	// StoreSmContextInDB(smContext)
 	return smContext
 }
@@ -288,21 +286,13 @@ func (smContext *SMContext) ChangeState(nextState SMContextState) {
 //*** add unit test ***//
 func GetSMContext(ref string) (smContext *SMContext) {
 	fmt.Println("db - in GetSMContext")
-	fmt.Println("db - in GetSMContext smContextPool ...")
 	ShowSmContextPool()
-	fmt.Println("db - in GetSMContext smContextPool find smcontext w ref = ", ref)
 	if value, ok := smContextPool.Load(ref); ok {
-		// if _, ok := smContextPool.Load(ref); ok {
-		fmt.Println("db - found in GetSMContext using mem val")
 		smContext = value.(*SMContext)
 	} else {
-		fmt.Println("db - found in GetSMContext using GetSMContextByRefInDB")
 		smContext = GetSMContextByRefInDB(ref)
 		smContextPool.Store(ref, smContext)
-		fmt.Println("db - in GetSMContext after storing smContextPool", smContextPool)
 	}
-
-	fmt.Println("db - in GetSMContext before return ")
 	return
 }
 
@@ -333,7 +323,6 @@ func RemoveSMContext(ref string) {
 	smContextActive := decSMContextActive()
 	metrics.SetSessStats(SMF_Self().NfInstanceID, smContextActive)
 
-	fmt.Println("db - in RemoveSMContext DeleteContextInDB...")
 	DeleteContextInDBByRef(smContext.Ref)
 }
 
@@ -341,13 +330,10 @@ func RemoveSMContext(ref string) {
 func GetSMContextBySEID(SEID uint64) (smContext *SMContext) {
 	fmt.Println("db - in GetSMContextBySEID")
 	if value, ok := seidSMContextMap.Load(SEID); ok {
-		fmt.Println("db - in GetSMContextBySEID get from mem...")
 		smContext = value.(*SMContext)
 	} else {
-		fmt.Println("db - in GetSMContextBySEID get from GetSMContextBySEIDInDB()...")
 		smContext = GetSMContextBySEIDInDB(SEID)
 	}
-	// smContext = GetSMContextBySEIDInDB(SEID)
 	return
 }
 
@@ -459,7 +445,6 @@ func (smContext *SMContext) AllocateLocalSEIDForUPPath(path UPPath) {
 			}
 
 			seidSMContextMap.Store(allocatedSEID, smContext)
-			fmt.Println("db - AllocateLocalSEIDForUPPath")
 			StoreSeidContextInDB(allocatedSEID, smContext)
 			StoreRefToSeidInDB(allocatedSEID, smContext)
 		}

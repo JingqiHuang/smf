@@ -302,8 +302,6 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 
 	smContext.SubPduSessLog.Infof("PDUSessionSMContextCreate, PDU session context create success ")
 
-	fmt.Println("db - in HandlePDUSessionSMContextCreate")
-	// smf_context.StoreSmContextInDB(smContext)
 	return nil
 	// TODO: UECM registration
 }
@@ -311,7 +309,6 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 
 	txn := eventData.(*transaction.Transaction)
-	fmt.Println("PDUSessionSMContextUpdate, txn = ", txn)
 	smContext := txn.Ctxt.(*smf_context.SMContext)
 
 	smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, update received")
@@ -354,9 +351,6 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 		return err
 	}
 
-	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle pfcpParam ", pfcpParam)
-	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle pfcpParam.farList ", pfcpParam.farList)
-	fmt.Println("db - in HandlePDUSessionSMContextUpdate after handle smContext.SMContextState ", smContext.SMContextState)
 	var httpResponse *http_wrapper.Response
 	// Check FSM and take corresponding action
 	switch smContext.SMContextState {
@@ -392,7 +386,6 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 			smContext.SubPduSessLog.Infof("PDUSessionSMContextUpdate, send PFCP Modification")
 
 			//Initiate PFCP Modify
-			fmt.Println("db - in HandlePDUSessionSMContextUpdate pfcpParam ", pfcpParam)
 			if err = SendPfcpSessionModifyReq(smContext, pfcpParam); err != nil {
 				//Modify failure
 				smContext.SubCtxLog.Errorf("pfcp session modify error: %v ", err.Error())
@@ -444,10 +437,6 @@ func HandlePDUSessionSMContextUpdate(eventData interface{}) error {
 			Body:   response,
 		}
 	}
-	fmt.Println("db - StoreContextInDB(smContext) in sm_context.go!!!")
-	// smf_context.StoreSmContextInDB(smContext)
-	// tmp_ctx := smf_context.GetSMContextByRefInDB(smContext.Ref)
-	// fmt.Println("db - StoreContextInDB(smContext) in sm_context.go tmp_ctx = ", tmp_ctx)
 
 	txn.Rsp = httpResponse
 	return nil

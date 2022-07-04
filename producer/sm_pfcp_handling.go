@@ -16,12 +16,10 @@ func SendPfcpSessionModifyReq(smContext *smf_context.SMContext, pfcpParam *pfcpP
 	defaultPath := smContext.Tunnel.DataPathPool.GetDefaultPath()
 	ANUPF := defaultPath.FirstDPNode
 
-	fmt.Println("db - in SendPfcpSessionModifyReq before SendPfcpSessionModificationRequest pfcpParam.farList ", pfcpParam.farList)
 	pfcp_message.SendPfcpSessionModificationRequest(ANUPF.UPF.NodeID, smContext,
 		pfcpParam.pdrList, pfcpParam.farList, pfcpParam.barList, pfcpParam.qerList)
 
 	PFCPResponseStatus := <-smContext.SBIPFCPCommunicationChan
-	fmt.Println("db - in SendPfcpSessionModifyReq before SendPfcpSessionModificationRequest PFCPResponseStatus", PFCPResponseStatus)
 
 	switch PFCPResponseStatus {
 	case smf_context.SessionUpdateSuccess:

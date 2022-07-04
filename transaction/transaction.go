@@ -193,11 +193,9 @@ func (t *Transaction) StartTxnLifeCycle(fsm txnFsm) {
 	nextEvent := TxnEventInit
 	var err error
 
-	fmt.Println("db - in StartTxnLifeCycle ")
 	for {
 		currEvent := nextEvent
 		t.TxnFsmLog.Debugf("processing event[%v] ", currEvent.String())
-		fmt.Println("db - in StartTxnLifeCycle processing event[%v] ", currEvent.String())
 		if nextEvent, err = TxnFsmHandler[currEvent](t); err != nil {
 			t.TxnFsmLog.Errorf("TxnFsm Error, Stage[%s] Err[%v] ", currEvent.String(), err.Error())
 		}

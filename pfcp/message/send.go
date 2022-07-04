@@ -7,7 +7,6 @@ package message
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"sync"
 
@@ -206,7 +205,6 @@ func SendPfcpSessionEstablishmentRequest(
 	ctx *smf_context.SMContext,
 	pdrList []*smf_context.PDR, farList []*smf_context.FAR, barList []*smf_context.BAR, qerList []*smf_context.QER) {
 	pfcpMsg, err := BuildPfcpSessionEstablishmentRequest(upNodeID, ctx, pdrList, farList, barList, qerList)
-	fmt.Println("db - in SendPfcpSessionEstablishmentRequest pfcpMsg ", pfcpMsg)
 	if err != nil {
 		ctx.SubPfcpLog.Errorf("Build PFCP Session Establishment Request failed: %v", err)
 		return
@@ -266,16 +264,13 @@ func SendPfcpSessionEstablishmentResponse(addr *net.UDPAddr) {
 func SendPfcpSessionModificationRequest(upNodeID pfcpType.NodeID,
 	ctx *smf_context.SMContext,
 	pdrList []*smf_context.PDR, farList []*smf_context.FAR, barList []*smf_context.BAR, qerList []*smf_context.QER) (seqNum uint32) {
-	print("db - in SendPfcpSessionModificationRequest farList", farList)
 	pfcpMsg, err := BuildPfcpSessionModificationRequest(upNodeID, ctx, pdrList, farList, barList, qerList)
-	fmt.Println("db - in SendPfcpSessionModificationRequest pfcpMsg", pfcpMsg)
 	if err != nil {
 		ctx.SubPfcpLog.Errorf("Build PFCP Session Modification Request failed: %v", err)
 		return
 	}
 	seqNum = getSeqNumber()
 	nodeIDtoIP := upNodeID.ResolveNodeIdToIp().String()
-	fmt.Println("db - in SendPfcpSessionModificationRequest ctx.PFCPContext[nodeIDtoIP]", ctx.PFCPContext[nodeIDtoIP])
 	remoteSEID := ctx.PFCPContext[nodeIDtoIP].RemoteSEID
 	message := pfcp.Message{
 		Header: pfcp.Header{

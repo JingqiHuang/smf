@@ -65,15 +65,12 @@ func InitFsm() {
 func HandleEvent(smContext *smf_context.SMContext, event SmEvent, eventData SmEventData) error {
 
 	ctxtState := smContext.SMContextState
-	fmt.Printf("db - in HandleEvent handle fsm event[%v], state[%v] \n", event.String(), ctxtState.String())
 	smContext.SubFsmLog.Debugf("handle fsm event[%v], state[%v] ", event.String(), ctxtState.String())
-	fmt.Println("handle fsm event[%v], state[%v] ", event.String(), ctxtState.String())
 	if nextState, err := SmfFsmHandler[smContext.SMContextState][event](event, &eventData); err != nil {
 		smContext.SubFsmLog.Errorf("fsm state[%v] event[%v], next-state[%v] error, %v",
 			smContext.SMContextState.String(), event.String(), nextState.String(), err.Error())
 		return err
 	} else {
-		fmt.Printf("db - in ChangeState change state to \n", event.String(), nextState)
 		smContext.ChangeState(nextState)
 	}
 	// smf_context.StoreSmContextInDB(smContext)
@@ -107,21 +104,14 @@ func HandleStatePfcpCreatePendingEventPfcpSessCreate(event SmEvent, eventData *S
 
 	txn := eventData.Txn.(*transaction.Transaction)
 	smCtxt := txn.Ctxt.(*smf_context.SMContext)
-	fmt.Println("db - in HandleStatePfcpCreatePendingEventPfcpSessCreate")
-	// fmt.Println("db - HandleStatePfcpCreatePendingEventPfcpSessCreate smCtxt %v", smCtxt)
 	producer.SendPFCPRules(smCtxt)
-	fmt.Println("waiting for pfcp session establish response")
 	smCtxt.SubFsmLog.Debug("waiting for pfcp session establish response")
-	fmt.Println("db - in HandleStatePfcpCreatePendingEventPfcpSessCreate &smCtxt.SBIPFCPCommunicationChan ", &smCtxt.SBIPFCPCommunicationChan)
-	fmt.Println("db - in HandleStatePfcpCreatePendingEventPfcpSessCreate &smCtxt.SBIPFCPCommunicationChan ", &smCtxt.SBIPFCPCommunicationChan)
-	fmt.Println("db - in HandleStatePfcpCreatePendingEventPfcpSessCreate &smCtxt ", &smCtxt)
 	switch <-smCtxt.SBIPFCPCommunicationChan {
 	case smf_context.SessionEstablishSuccess:
 		smCtxt.SubFsmLog.Debug("pfcp session establish response success")
 		fmt.Println("entering smf_context.SmStateN1N2TransferPending")
 		return smf_context.SmStateN1N2TransferPending, nil
 	case smf_context.SessionEstablishFailed:
-		smCtxt.SubFsmLog.Error("db - pfcp session establish response failure - failed")
 		fallthrough
 	default:
 		smCtxt.SubFsmLog.Error("pfcp session establish response failure")
@@ -151,9 +141,6 @@ func HandleStateActiveEventPduSessModify(event SmEvent, eventData *SmEventData) 
 
 	txn := eventData.Txn.(*transaction.Transaction)
 	smCtxt := txn.Ctxt.(*smf_context.SMContext)
-
-	// fmt.Println("db - HandleStateActiveEventPduSessModify txn = %v ", txn)
-	// fmt.Println("db - HandleStateActiveEventPduSessModify smCtxt = %v ", smCtxt)
 
 	if err := producer.HandlePDUSessionSMContextUpdate(eventData.Txn); err != nil {
 		smCtxt.SubFsmLog.Errorf("sm context update error, %v ", err.Error())
