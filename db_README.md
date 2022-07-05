@@ -1,11 +1,13 @@
 # db changes README
 
+DB changes are made to store/retrieve/delete SM context in/from DB
+
 ## db change related files:
 
-context/db.go
-context/db_tunnel.go
-context/sm_context.go
-fsm/txnFsm.go
+	context/db.go
+	context/db_tunnel.go
+	context/sm_context.go
+	fsm/txnFsm.go
 
 ##### Major DB operations are written as functions in db.go, including
     MarshalJSON() // customized mashaller for sm context
@@ -21,6 +23,15 @@ fsm/txnFsm.go
 	ClearSMContextInMem() // Delete SMContext in smContextPool and seidSMContextMap, for test purpose
 	
 ##### Major DB operation related to store Tunnel variable of sm context are written as functions in db_tunnel.go
+
+Why do we need smf.data.nodeInDB?
+
+- In the struct UplinkTunnel/DownlinkTunnel *GTPTunnel, it contains SrcEndPoint *DataPathNode. and the SrcEndPoint also contains UplinkTunnel/DownlinkTunnel *GTPTunnel. This causes a cyclic structure that cannot be stored into the database.
+
+- To recover the SrcEndPoint *DataPathNode:
+	* Store the ID that can track the SrcEndPoint in the GTPTunnel, which is SrcEndPoint.UPF.NodeID. 
+	* Store the DataPathNodeInDB with the ID into the database
+
     
 ### Note
 
