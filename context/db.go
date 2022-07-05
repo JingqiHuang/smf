@@ -99,8 +99,8 @@ func (smContext *SMContext) MarshalJSON() ([]byte, error) {
 	for key, pfcpCtx := range smContext.PFCPContext {
 		pfcpSessionContextInDB.NodeID = pfcpCtx.NodeID
 		pfcpSessionContextInDB.PDRs = pfcpCtx.PDRs
-		pfcpSessionContextInDB.LocalSEID = strconv.FormatUint(pfcpCtx.LocalSEID, 10)
-		pfcpSessionContextInDB.RemoteSEID = strconv.FormatUint(pfcpCtx.RemoteSEID, 10)
+		pfcpSessionContextInDB.LocalSEID = SeidConv(pfcpCtx.LocalSEID)
+		pfcpSessionContextInDB.RemoteSEID = SeidConv(pfcpCtx.RemoteSEID)
 		PFCPContextVal[key] = pfcpSessionContextInDB
 	}
 
@@ -138,8 +138,8 @@ func (smContext *SMContext) UnmarshalJSON(data []byte) error {
 		smContext.PFCPContext[key] = &PFCPSessionContext{}
 		smContext.PFCPContext[key].NodeID = pfcpCtxInDB.NodeID
 		smContext.PFCPContext[key].PDRs = pfcpCtxInDB.PDRs
-		smContext.PFCPContext[key].LocalSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.LocalSEID), 10, 64)
-		smContext.PFCPContext[key].RemoteSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.RemoteSEID), 10, 64)
+		smContext.PFCPContext[key].LocalSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.LocalSEID), 16, 64)
+		smContext.PFCPContext[key].RemoteSEID, _ = strconv.ParseUint(string(pfcpCtxInDB.RemoteSEID), 16, 64)
 	}
 
 	var dataPathInDBIf interface{}
@@ -234,7 +234,7 @@ type SeidSmContextRef struct {
 }
 
 func SeidConv(seid uint64) (seidStr string) {
-	seidStr = strconv.FormatUint(seid, 10)
+	seidStr = strconv.FormatUint(seid, 16)
 	return seidStr
 }
 
@@ -272,7 +272,7 @@ func GetSeidByRefInDB(ref string) (seid uint64) {
 
 	result := MongoDBLibrary.RestfulAPIGetOne(RefSeidCol, filter)
 	seidStr := result["seid"].(string)
-	seid, _ = strconv.ParseUint(seidStr, 10, 64)
+	seid, _ = strconv.ParseUint(seidStr, 16, 64)
 	return
 }
 
@@ -311,11 +311,10 @@ func GetSMContextBySEIDInDB(seidUint uint64) (smContext *SMContext) {
 }
 
 // Delete SMContext By SEID from DB
-func DeleteContextInDBBySEID(seidUint uint64) {
+func DeleteSmContextInDBBySEID(seidUint uint64) {
 
 	seid := SeidConv(seidUint)
 	fmt.Println("db - delete SMContext In DB by seid")
-	// smContextBsonA := ToBsonM(smContext)
 	filter := bson.M{"seid": seid}
 	logger.CtxLog.Infof("filter : ", filter)
 
@@ -323,14 +322,13 @@ func DeleteContextInDBBySEID(seidUint uint64) {
 	ref := result["ref"].(string)
 
 	MongoDBLibrary.RestfulAPIDeleteOne(SeidSmContextCol, filter)
-	DeleteContextInDBByRef(ref)
+	DeleteSmContextInDBByRef(ref)
 
 }
 
 // Delete SMContext By ref from DB
-func DeleteContextInDBByRef(ref string) {
+func DeleteSmContextInDBByRef(ref string) {
 	fmt.Println("db - delete SMContext In DB w ref")
-	// smContextBsonA := ToBsonM(smContext)
 	filter := bson.M{"ref": ref}
 	logger.CtxLog.Infof("filter : ", filter)
 	MongoDBLibrary.RestfulAPIDeleteOne(SmContextDataColl, filter)

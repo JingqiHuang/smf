@@ -309,7 +309,7 @@ func RemoveSMContext(ref string) {
 
 	for _, pfcpSessionContext := range smContext.PFCPContext {
 		seidSMContextMap.Delete(pfcpSessionContext.LocalSEID)
-		DeleteContextInDBBySEID(pfcpSessionContext.LocalSEID)
+		DeleteSmContextInDBBySEID(pfcpSessionContext.LocalSEID)
 
 	}
 
@@ -323,7 +323,7 @@ func RemoveSMContext(ref string) {
 	smContextActive := decSMContextActive()
 	metrics.SetSessStats(SMF_Self().NfInstanceID, smContextActive)
 
-	DeleteContextInDBByRef(smContext.Ref)
+	DeleteSmContextInDBByRef(smContext.Ref)
 }
 
 //*** add unit test ***//
