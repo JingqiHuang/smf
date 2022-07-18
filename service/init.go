@@ -336,6 +336,7 @@ func (smf *SMF) Start() {
 
 	//Trigger PFCP association towards not associated UPFs
 	go upf.ProbeInactiveUpfs(context.SMF_Self().UserPlaneInformation)
+	// upf.ProbeInactiveUpfs(context.SMF_Self().UserPlaneInformation)
 
 	time.Sleep(1000 * time.Millisecond)
 
