@@ -89,6 +89,18 @@ func SendHeartbeatRequest(upNodeID pfcpType.NodeID) error {
 	}
 
 	InsertPfcpTxn(message.Header.SequenceNumber, &upNodeID)
+
+	if udp_adapter {
+		rsp, err := SendPfcpMsgToAdapter(upNodeID, message, addr, nil)
+		if err != nil {
+			logger.PfcpLog.Errorf("SendPfcpMsgToAdapter failed: %v", err)
+			return err
+		}
+		pMsg := ProcessHeartbeatRsp(rsp)
+		logger.PfcpLog.Infof("after ProcessHeartbeatRsp pMsg val %v\n", pMsg)
+		logger.PfcpLog.Infof("after ProcessHeartbeatRsp pMsg type %T\n", pMsg)
+	}
+
 	if err := udp.SendPfcp(message, addr, nil); err != nil {
 		FetchPfcpTxn(message.Header.SequenceNumber)
 		return err
@@ -128,16 +140,15 @@ func SendPfcpAssociationSetupRequest(upNodeID pfcpType.NodeID) {
 
 	if udp_adapter {
 		rsp, err := SendPfcpMsgToAdapter(upNodeID, message, addr, nil)
-		logger.PfcpLog.Infof("after SendPfcpMsgToAdapter pfcp msg.Header %v\n", message.Header)
-		logger.PfcpLog.Infof("after SendPfcpMsgToAdapter rsp %v\n", rsp)
-		logger.PfcpLog.Infof("after SendPfcpMsgToAdapter err %v\n", err)
+		if err != nil {
+			logger.PfcpLog.Errorf("SendPfcpMsgToAdapter failed: %v", err)
+			return
+		}
 		if rsp.StatusCode == http.StatusOK {
-			bodyBytes, err := io.ReadAll(rsp.Body)
-			if err != nil {
-				logger.PfcpLog.Fatalln(err)
-			}
-			bodyString := string(bodyBytes)
-			logger.PfcpLog.Infof(bodyString)
+			// process response
+			pMsg := ProcessPfcpAssociationRsp(rsp)
+			logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg val %v\n", pMsg)
+			logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg type %T\n", pMsg)
 		}
 	}
 	udp.SendPfcp(message, addr, nil)
@@ -548,13 +559,13 @@ func handleSendPfcpSessModReqError(msg *pfcp.Message, pfcpErr error) {
 type UdpPodMsgType int
 
 type UdpPodPfcpMsg struct {
-	SEID     string
-	SmfIp    string
-	UpNodeID pfcpType.NodeID
+	SEID     string          `json:"seid,omitempty" yaml:"seid" bson:"seid,omitempty"`
+	SmfIp    string          `json:"smfIp,omitempty" yaml:"smfIp" bson:"smfIp,omitempty"`
+	UpNodeID pfcpType.NodeID `json:"upNodeID,omitempty" yaml:"upNodeID" bson:"upNodeID,omitempty"`
 	// message type contains in Msg.Header
-	Msg       pfcp.Message
-	Addr      *net.UDPAddr
-	EventData interface{}
+	Msg       pfcp.Message `json:"msg,omitempty" yaml:"msg" bson:"msg,omitempty"`
+	Addr      *net.UDPAddr `json:"addr,omitempty" yaml:"addr" bson:"addr,omitempty"`
+	EventData interface{}  `json:"eventData,omitempty" yaml:"eventData" bson:"eventData,omitempty"`
 }
 
 func GetLocalIP() string {
@@ -617,11 +628,56 @@ func SendPfcpMsgToAdapter(upNodeID pfcpType.NodeID, msg pfcp.Message, addr *net.
 	}
 	// waiting for http response
 	rsp, err := client.Do(req)
+	fmt.Printf("client: rsp: %v\n", rsp)
+	fmt.Printf("client: rsp type: %T\n", rsp)
 
 	if err != nil {
 		fmt.Printf("client: error making http request: %s\n", err)
-		return nil, err
 	}
 
-	return rsp, nil
+	return rsp, err
+}
+
+func ProcessPfcpAssociationRsp(rsp *http.Response) pfcp.PFCPAssociationSetupResponse {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		logger.PfcpLog.Fatalln(err)
+	}
+	rspBodyString := string(bodyBytes)
+	logger.PfcpLog.Infof("rspBodyString ", rspBodyString)
+
+	uMsg := UdpPodPfcpMsg{}
+	pMsg := pfcp.PFCPAssociationSetupResponse{}
+
+	json.Unmarshal(bodyBytes, &uMsg)
+	msg := uMsg.Msg.Body
+
+	msgString, _ := json.Marshal(msg)
+	json.Unmarshal(msgString, &pMsg)
+	fmt.Printf("ProcessPfcpAssociationRsp pMsg after unmarshal val %v\n", pMsg)
+	fmt.Printf("ProcessPfcpAssociationRsp pMsg after unmarshal type %T\n", pMsg)
+	// return pMsg here
+	return pMsg
+}
+
+func ProcessHeartbeatRsp(rsp *http.Response) pfcp.HeartbeatResponse {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		logger.PfcpLog.Fatalln(err)
+	}
+	rspBodyString := string(bodyBytes)
+	logger.PfcpLog.Infof("rspBodyString ", rspBodyString)
+
+	uMsg := UdpPodPfcpMsg{}
+	pMsg := pfcp.HeartbeatResponse{}
+
+	json.Unmarshal(bodyBytes, &uMsg)
+	msg := uMsg.Msg.Body
+
+	msgString, _ := json.Marshal(msg)
+	json.Unmarshal(msgString, &pMsg)
+	fmt.Printf("ProcessHeartbeatRsp pMsg after unmarshal val %v\n", pMsg)
+	fmt.Printf("ProcessHeartbeatRsp pMsg after unmarshal type %T\n", pMsg)
+	// return pMsg here
+	return pMsg
 }
