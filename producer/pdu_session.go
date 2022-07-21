@@ -209,7 +209,7 @@ func HandlePDUSessionSMContextCreate(eventData interface{}) error {
 		smContext.SubPduSessLog.Infof("PDUSessionSMContextCreate, Policy association create success")
 		smPolicyDecision = smPolicyDecisionRsp
 
-		//smPolicyDecision = qos.TestMakeSamplePolicyDecision()
+		smPolicyDecision = qos.TestMakeSamplePolicyDecision()
 		//Derive QoS change(compare existing vs received Policy Decision)
 		smContext.SubQosLog.Infof("PDUSessionSMContextCreate, received SM policy data: %v",
 			qos.SmPolicyDecisionString(smPolicyDecision))
