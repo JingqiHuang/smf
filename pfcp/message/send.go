@@ -95,9 +95,16 @@ func SendHeartbeatRequest(upNodeID pfcpType.NodeID) error {
 			logger.PfcpLog.Errorf("SendPfcpMsgToAdapter failed: %v", err)
 			return err
 		}
-		pMsg := ProcessHeartbeatRsp(rsp)
-		logger.PfcpLog.Infof("after ProcessHeartbeatRsp pMsg val %v\n", pMsg)
-		logger.PfcpLog.Infof("after ProcessHeartbeatRsp pMsg type %T\n", pMsg)
+
+		// return []byte of json string of the pfcp message
+		pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+		// unmarshall  pMsgJsonByte into pfcp.HeartbeatResponse
+		pfcpMsg := pfcp.HeartbeatResponse{}
+		json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+		logger.PfcpLog.Infof("in SendHeartbeatRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+		logger.PfcpLog.Infof("in SendHeartbeatRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
 	}
 
 	if err := udp.SendPfcp(message, addr, nil); err != nil {
@@ -144,10 +151,15 @@ func SendPfcpAssociationSetupRequest(upNodeID pfcpType.NodeID) {
 			return
 		}
 		if rsp.StatusCode == http.StatusOK {
-			// process response
-			pMsg := ProcessPfcpAssociationRsp(rsp)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg val %v\n", pMsg)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg type %T\n", pMsg)
+			// return []byte of json string of the pfcp message
+			pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+			// unmarshall  pMsgJsonByte into pfcp.PFCPAssociationSetupResponse
+			pfcpMsg := pfcp.PFCPAssociationSetupResponse{}
+			json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+			logger.PfcpLog.Infof("in SendPfcpAssociationSetupRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+			logger.PfcpLog.Infof("in SendPfcpAssociationSetupRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
 		}
 	}
 	udp.SendPfcp(message, addr, nil)
@@ -176,23 +188,6 @@ func SendPfcpAssociationSetupResponse(upNodeID pfcpType.NodeID, cause pfcpType.C
 	addr := &net.UDPAddr{
 		IP:   upNodeID.ResolveNodeIdToIp(),
 		Port: pfcpUdp.PFCP_PORT,
-	}
-
-	if udp_adapter {
-		_, err := SendPfcpMsgToAdapter(upNodeID, message, addr, nil)
-		if err != nil {
-			logger.PfcpLog.Errorf("in SendPfcpAssociationSetupResponse SendPfcpMsgToAdapter failed: %v", err)
-			return
-		}
-
-		// do nothing for sending the rsp
-
-		// if rsp.StatusCode == http.StatusOK {
-		// 	// process response
-		// 	pMsg := ProcessPfcpAssociationRsp(rsp)
-		// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg val %v\n", pMsg)
-		// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationRsp pMsg type %T\n", pMsg)
-		// }
 	}
 
 	udp.SendPfcp(message, addr, nil)
@@ -230,10 +225,15 @@ func SendPfcpAssociationReleaseRequest(upNodeID pfcpType.NodeID) {
 		}
 
 		if rsp.StatusCode == http.StatusOK {
-			// process response
-			pMsg := ProcessPfcpAssociationReleaseRsp(rsp)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg val %v\n", pMsg)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg type %T\n", pMsg)
+			// return []byte of json string of the pfcp message
+			pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+			// unmarshall  pMsgJsonByte into pfcp.PFCPAssociationSetupResponse
+			pfcpMsg := pfcp.PFCPAssociationReleaseResponse{}
+			json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+			logger.PfcpLog.Infof("in SendPfcpAssociationReleaseRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+			logger.PfcpLog.Infof("in SendPfcpAssociationReleaseRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
 		}
 	}
 
@@ -262,21 +262,6 @@ func SendPfcpAssociationReleaseResponse(upNodeID pfcpType.NodeID, cause pfcpType
 	addr := &net.UDPAddr{
 		IP:   upNodeID.ResolveNodeIdToIp(),
 		Port: pfcpUdp.PFCP_PORT,
-	}
-
-	if udp_adapter {
-		_, err := SendPfcpMsgToAdapter(upNodeID, message, addr, nil)
-		if err != nil {
-			logger.PfcpLog.Errorf("in SendPfcpAssociationReleaseResponse SendPfcpMsgToAdapter failed: %v", err)
-			return
-		}
-		// do nothing for sending the rsp
-		// if rsp.StatusCode == http.StatusOK {
-		// 	// process response
-		// 	pMsg := ProcessPfcpAssociationReleaseRsp(rsp)
-		// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg val %v\n", pMsg)
-		// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg type %T\n", pMsg)
-		// }
 	}
 
 	udp.SendPfcp(message, addr, nil)
@@ -324,11 +309,15 @@ func SendPfcpSessionEstablishmentRequest(
 			return
 		}
 		if rsp.StatusCode == http.StatusOK {
-			// process response
-			pMsg := ProcessPfcpSessionEstablishmentRsp(rsp)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg val %v\n", pMsg)
-			logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg type %T\n", pMsg)
-			// TODO: handle pMsg using pfcp.Handler funcs
+			// return []byte of json string of the pfcp message
+			pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+			// unmarshall  pMsgJsonByte into pfcp.PFCPAssociationSetupResponse
+			pfcpMsg := pfcp.PFCPSessionEstablishmentResponse{}
+			json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+			logger.PfcpLog.Infof("in SendPfcpSessionEstablishmentRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+			logger.PfcpLog.Infof("in SendPfcpSessionEstablishmentRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
 
 		}
 	}
@@ -358,24 +347,7 @@ func SendPfcpSessionEstablishmentResponse(addr *net.UDPAddr) {
 		},
 		Body: pfcpMsg,
 	}
-	// TODO: need ip -> nodeID
-	/*
-		if udp_adapter {
-			// TODO: need ip -> NodeID transfer
-			_, err := SendPfcpMsgToAdapter(upNodeID, message, addr, nil)
-			if err != nil {
-				logger.PfcpLog.Errorf("in SendPfcpAssociationReleaseRequest SendPfcpMsgToAdapter failed: %v", err)
-				return
-			}
-			// do nothing afetr sending pfcp rsp
-			// if rsp.StatusCode == http.StatusOK {
-			// 	// process response
-			// 	pMsg := ProcessPfcpSessionEstablishmentRsp(rsp)
-			// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg val %v\n", pMsg)
-			// 	logger.PfcpLog.Infof("after ProcessPfcpAssociationReleaseRsp pMsg type %T\n", pMsg)
-			// }
-		}
-	*/
+
 	udp.SendPfcp(message, addr, nil)
 }
 
@@ -418,10 +390,16 @@ func SendPfcpSessionModificationRequest(upNodeID pfcpType.NodeID,
 			return
 		}
 		if rsp.StatusCode == http.StatusOK {
-			// process response
-			pMsg := ProcessPfcpSessionModificationRsp(rsp)
-			logger.PfcpLog.Infof("after ProcessPfcpSessionModificationRsp pMsg val %v\n", pMsg)
-			logger.PfcpLog.Infof("after ProcessPfcpSessionModificationRsp pMsg type %T\n", pMsg)
+			// return []byte of json string of the pfcp message
+			pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+			// unmarshall  pMsgJsonByte into pfcp.PFCPAssociationSetupResponse
+			pfcpMsg := pfcp.PFCPSessionModificationResponse{}
+			json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+			logger.PfcpLog.Infof("in SendPfcpSessionModificationRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+			logger.PfcpLog.Infof("in SendPfcpSessionModificationRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
+
 		}
 	}
 
@@ -489,10 +467,16 @@ func SendPfcpSessionDeletionRequest(upNodeID pfcpType.NodeID, ctx *smf_context.S
 			return
 		}
 		if rsp.StatusCode == http.StatusOK {
-			// process response
-			pMsg := ProcessPfcpSessionDeletionRsp(rsp)
-			logger.PfcpLog.Infof("after ProcessPfcpSessionDeletionRsp pMsg val %v\n", pMsg)
-			logger.PfcpLog.Infof("after ProcessPfcpSessionDeletionRsp pMsg type %T\n", pMsg)
+			// return []byte of json string of the pfcp message
+			pMsgJsonByte := ProcessPfcpResponse(rsp)
+
+			// unmarshall  pMsgJsonByte into pfcp.PFCPAssociationSetupResponse
+			pfcpMsg := pfcp.PFCPSessionDeletionResponse{}
+			json.Unmarshal(pMsgJsonByte, &pfcpMsg)
+
+			logger.PfcpLog.Infof("in SendPfcpSessionDeletionRequest after ProcessPfcpResponse pfcpMsg val %v\n", pfcpMsg)
+			logger.PfcpLog.Infof("in SendPfcpSessionDeletionRequest after ProcessPfcpResponse pfcpMsg type %T\n", pfcpMsg)
+
 		}
 	}
 	udp.SendPfcp(message, upaddr, eventData)
@@ -521,7 +505,7 @@ func SendPfcpSessionDeletionResponse(addr *net.UDPAddr) {
 		},
 		Body: pfcpMsg,
 	}
-	// TODO: need ip -> nodeID transfer
+
 	udp.SendPfcp(message, addr, nil)
 }
 
@@ -543,7 +527,7 @@ func SendPfcpSessionReportResponse(addr *net.UDPAddr, cause pfcpType.Cause, pfcp
 		},
 		Body: pfcpMsg,
 	}
-	// TODO: need ip -> nodeID transfer
+
 	udp.SendPfcp(message, addr, nil)
 	logger.PfcpLog.Infof("Sent PFCP Session Report Response Seq[%d] to NodeID[%s]", seqFromUPF, addr.IP.String())
 }
@@ -565,7 +549,7 @@ func SendHeartbeatResponse(addr *net.UDPAddr, seq uint32) {
 		},
 		Body: pfcpMsg,
 	}
-	// TODO: need ip -> nodeID transfer
+
 	udp.SendPfcp(message, addr, nil)
 	logger.PfcpLog.Infof("Sent PFCP Heartbeat Response Seq[%d] to NodeID[%s]", seq, addr.IP.String())
 }

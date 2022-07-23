@@ -6,6 +6,7 @@ package context
 
 import (
 	"errors"
+	"fmt"
 	"net"
 
 	"sync"
@@ -19,10 +20,12 @@ type IPAllocator struct {
 func NewIPAllocator(cidr string) (*IPAllocator, error) {
 	allocator := &IPAllocator{}
 
+	fmt.Printf("pfcp lb - in NewIPAllocator cidr: %v", cidr)
 	if _, ipnet, err := net.ParseCIDR(cidr); err != nil {
 		return nil, err
 	} else {
 		allocator.ipNetwork = ipnet
+		fmt.Printf("pfcp lb - in NewIPAllocator ipnet: %v", ipnet)
 	}
 	allocator.g = newIDPool(1, 1<<int64(32-maskBits(allocator.ipNetwork.Mask))-2)
 
@@ -78,6 +81,7 @@ func (a *IPAllocator) Allocate() (net.IP, error) {
 	if offset, err := a.g.allocate(); err != nil {
 		return nil, errors.New("ip allocation failed" + err.Error())
 	} else {
+		fmt.Printf("IPAddrWithOffset(a.ipNetwork.IP (%v), int(offset)) return %v\n", a.ipNetwork.IP, IPAddrWithOffset(a.ipNetwork.IP, int(offset)))
 		return IPAddrWithOffset(a.ipNetwork.IP, int(offset)), nil
 	}
 }

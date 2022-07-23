@@ -7,14 +7,31 @@ package message
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/omec-project/pfcp"
 	"github.com/omec-project/smf/logger"
 )
 
+func ProcessPfcpResponse(rsp *http.Response) []byte {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		logger.PfcpLog.Fatalln(err)
+	}
+	rspBodyString := string(bodyBytes)
+	logger.PfcpLog.Infof("rspBodyString ", rspBodyString)
+
+	uMsg := UdpPodPfcpMsg{}
+	// unmarshal http rsp byte into UdpPodPfcpMsg{}
+	json.Unmarshal(bodyBytes, &uMsg)
+
+	msg := uMsg.Msg.Body
+	msgJsonByte, _ := json.Marshal(msg)
+
+	return msgJsonByte
+}
+
+/*
 func ProcessPfcpAssociationRsp(rsp *http.Response) pfcp.PFCPAssociationSetupResponse {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	if err != nil {
@@ -145,3 +162,4 @@ func ProcessPfcpSessionDeletionRsp(rsp *http.Response) pfcp.PFCPSessionDeletionR
 	// return pMsg here
 	return pMsg
 }
+*/
