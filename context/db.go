@@ -31,8 +31,11 @@ const (
 	SeidSmContextCol = "smf.data.seidSmContext"
 	NodeInDBCol      = "smf.data.nodeInDB"
 	// SMPolicyClientCol  = "smf.data.smPolicyClient"
-	RefSeidCol = "smf.data.refToSeid"
+	RefSeidCol    = "smf.data.refToSeid"
+	SmfCounterCol = "smf.data.smfCount"
 )
+
+var dbMutex sync.Mutex
 
 func SetupSmfCollection() {
 	fmt.Println("db - SetupSmfCollection")
@@ -46,7 +49,8 @@ func SetupSmfCollection() {
 	if err != nil {
 		logger.CtxLog.Errorf("Create index failed on TxnId field.")
 	}
-
+	smfCount := MongoDBLibrary.GetUniqueIdentity("smfCount")
+	logger.CtxLog.Infoln("unique id - init smfCount %v", smfCount)
 }
 
 // print out sm context

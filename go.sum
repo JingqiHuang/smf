@@ -295,6 +295,8 @@ github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRW
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 h1:W6apQkHrMkS0Muv8G/TipAy/FJl/rCYT0+EuS8+Z0z4=
 github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32/go.mod h1:9wM+0iRr9ahx58uYLpLIr5fm8diHn0JbqRycJi6w0Ms=
+github.com/omec-project/MongoDBLibrary v1.1.2 h1:WZnqo8bM1e6k3L/S5pmoOTCmD1GbunCfxkKXjh2AWKM=
+github.com/omec-project/MongoDBLibrary v1.1.2/go.mod h1:bchS8sexPvTzgcA+fGzGeMyQk2Ji2xyAYgXDg6wOg1I=
 github.com/omec-project/aper v1.1.0 h1:4FkTkDNGBWnTtEgCDuEitFjww1CJWVQhGqMs91triuU=
 github.com/omec-project/aper v1.1.0/go.mod h1:oOkKRI2BIo8SHpCsEzNbo9qiowEtEy3q+wmO7TuDrx4=
 github.com/omec-project/config5g v1.1.0 h1:NwXNSmy08xHBY5uF4iA3cEUVJRw2wKSxwc641FgCz20=

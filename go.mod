@@ -4,6 +4,8 @@
 
 module github.com/omec-project/smf
 
+replace github.com/badhrinathpa/MongoDBLibrary => ../MongoDBLibrary
+
 go 1.18
 
 require (
@@ -64,6 +66,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/omec-project/MongoDBLibrary v1.1.2 // indirect
 	github.com/omec-project/logger_conf v1.1.0 // indirect
 	github.com/omec-project/tlv v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
