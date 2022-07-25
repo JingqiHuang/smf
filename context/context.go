@@ -79,6 +79,10 @@ func RetrieveDnnInformation(Snssai models.Snssai, dnn string) *SnssaiSmfDnnInfo 
 }
 
 func AllocateLocalSEID() uint64 {
+	if smfContext.LocalSEIDCount >= 5000 {
+		logger.CtxLog.Errorln("existing SEID count %v reached maximum support UE number (5000)", smfContext.LocalSEIDCount)
+		return 0
+	}
 	atomic.AddUint64(&smfContext.LocalSEIDCount, 1)
 	smfCount := MongoDBLibrary.GetSmfCountFromDb()
 	seid := (int64(smfCount)-1)*5000 + int64(smfContext.LocalSEIDCount)
