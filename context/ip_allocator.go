@@ -82,7 +82,7 @@ func (a *IPAllocator) Allocate() (net.IP, error) {
 		return nil, errors.New("ip allocation failed" + err.Error())
 	} else {
 		smfCount := MongoDBLibrary.GetSmfCountFromDb()
-		ip := IPAddrWithOffset(a.ipNetwork.IP, int(offset)+(int(smfCount)-1)*200)
+		ip := IPAddrWithOffset(a.ipNetwork.IP, int(offset)+(int(smfCount)-1)*5000)
 		fmt.Printf("unique id - ip %v \n", ip)
 		fmt.Printf("unique id - offset %v \n", offset)
 		fmt.Printf("unique id - smfCount %v \n", smfCount)
