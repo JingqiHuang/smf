@@ -341,9 +341,11 @@ func DeleteSmContextInDBByRef(ref string) {
 
 // Delete SMContext in smContextPool and seidSMContextMap, for test
 func ClearSMContextInMem(ref string) {
+	smContext := GetSMContext(ref)
 	smContextPool.Delete(ref)
 	seid := GetSeidByRefInDB(ref)
 	seidSMContextMap.Delete(seid)
+	canonicalRef.Delete(canonicalName(smContext.Identifier, smContext.PDUSessionID))
 }
 
 func mapToByte(data map[string]interface{}) (ret []byte) {
